@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: leftover-blind-box-backend
+
+  # 数据库配置 - MySQL
+  datasource:
+    url: jdbc:mysql://switchyard.proxy.rlwy.net:45560/railway?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: kQTxThIsfCbaxQtADFRuGDZnfYisZYGH
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl    # 控制台打印SQL
+    map-underscore-to-camel-case: true                      # 开启驼峰映射
+  global-config:
+    db-config:
+      id-type: auto
+
+# ---------- JWT 配置 ----------
+jwt:
+  secret: k3b8Xq1v2Zm9Yp6Wn5Lr8As3Dx7Cv1Bn9Mq4Xs8Vj2Kp5Lw9Zt6Eq4Am8Nq1Vp5Lw9Zt6Eq4Am8Nq1Vp5Lw9Zt6Eq4A==
+  expire-time: 3600000
+
+logging:
+  level:
+    org.springframework.security: DEBUG
