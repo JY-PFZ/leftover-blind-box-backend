@@ -16,5 +16,6 @@ jwt:
   expire-time: 3600000
 
 rsa:
+  boot: true
   public-key-path: .keys/public-key.pem
   private-key-path: .keys/private-key.pem

@@ -30,6 +30,34 @@ public class RsaUtil {
     private final PrivateKey privateKey;
     private final PublicKey publicKey;
 
+    /**
+     * 将 PublicKey 转为 Base64 编码字符串（X.509 格式）
+     */
+    public String getPublicKeyAsBase64() {
+        byte[] encoded = publicKey.getEncoded();
+        return Base64.getEncoder().encodeToString(encoded);
+    }
+
+    public String getPublicKeyAsPem() {
+        String base64 = getPublicKeyAsBase64();
+        return """
+        -----BEGIN PUBLIC KEY-----
+        %s
+        -----END PUBLIC KEY-----
+        """.formatted(wrapText(base64));
+    }
+
+    // 每 64 字符换行（PEM 标准）
+    private String wrapText(String s) {
+        int lineLength = 64;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i += lineLength) {
+            sb.append(s, i, Math.min(i + lineLength, s.length()));
+            if (i + lineLength < s.length()) sb.append("\n");
+        }
+        return sb.toString();
+    }
+
     public RsaUtil(String privateKeyPath, String publicKeyPath) throws Exception {
         this.privateKey = loadPrivateKey(privateKeyPath);
         this.publicKey = loadPublicKey(publicKeyPath);
