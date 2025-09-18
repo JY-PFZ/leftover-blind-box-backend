@@ -1,6 +1,7 @@
 package nus.iss.se.magicbag.common;
 
 import nus.iss.se.magicbag.dto.Result;
+import nus.iss.se.magicbag.exception.DecryptionFailureException;
 import nus.iss.se.magicbag.exception.UserErrorException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,5 +41,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserErrorException.class)
     public ResponseEntity<Result<?>> handle(UserErrorException e) {
         return ResponseEntity.ok(Result.error(e.getErrInfo()));
+    }
+
+    @ExceptionHandler(DecryptionFailureException.class)
+    public ResponseEntity<Result<?>> handle(DecryptionFailureException e) {
+        return ResponseEntity.ok(Result.error(e.getMessage()));
     }
 }
