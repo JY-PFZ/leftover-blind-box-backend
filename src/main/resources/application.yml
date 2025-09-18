@@ -14,3 +14,15 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: auto
+
+# springdoc 配置
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  # 分组配置（可选）
+  group-configs:
+    - group: 'public-api'
+      paths-to-match: '/api/**'
+      packages-to-scan: nus.iss.se.magicBag.controller
