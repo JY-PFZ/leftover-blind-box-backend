@@ -3,6 +3,7 @@ package nus.iss.se.magicbag.aspect;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.common.BaseProperties;
+import nus.iss.se.magicbag.common.RsaProperties;
 import nus.iss.se.magicbag.common.annotation.RsaDecrypt;
 import nus.iss.se.magicbag.exception.DecryptionFailureException;
 import nus.iss.se.magicbag.util.RsaUtil;
@@ -16,18 +17,16 @@ import org.springframework.util.ReflectionUtils;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RasDecryptAspect {
+public class RsaDecryptAspect {
     private final RsaUtil rsaUtil;
-    private final BaseProperties baseProperties;
+    private final RsaProperties rsaProperties;
 
     /**
      * 拦截所有 Controller 方法，自动解密标记了 @DecryptField 的字段
      */
     @Around("execution(* nus.iss.se.magicbag.controller..*.*(..))")
     public Object decryptPassword(ProceedingJoinPoint joinPoint) throws Throwable {
-
-        // todo 目前dev环境仅用明文传输
-        if (!"dev".equals(baseProperties.getEnv())){
+        if (rsaProperties.isBoot()){
             Object[] args = joinPoint.getArgs();
             for (Object arg : args) {
                 if (arg != null) {

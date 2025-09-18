@@ -1,6 +1,7 @@
 package nus.iss.se.magicbag.controller;
 
 import jakarta.validation.Valid;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.dto.LoginReq;
@@ -8,13 +9,11 @@ import nus.iss.se.magicbag.dto.LoginResp;
 import nus.iss.se.magicbag.dto.Result;
 import nus.iss.se.magicbag.service.IUserService;
 import nus.iss.se.magicbag.util.JwtUtil;
+import nus.iss.se.magicbag.util.RsaUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 
@@ -26,7 +25,13 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final RsaUtil rsaUtil;
     private final IUserService userService;
+
+    @GetMapping("/key")
+    public Result<String> getPublicKey(){
+        return Result.success(rsaUtil.getPublicKeyAsPem());
+    }
 
     @PostMapping("/login")
     public Result<LoginResp> login(@RequestBody @Valid LoginReq request) {

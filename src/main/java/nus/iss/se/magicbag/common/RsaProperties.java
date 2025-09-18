@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 @Getter
 @Component
 public class RsaProperties {
+    @Value("${rsa.boot}")
+    private boolean boot;
+
     @Value("${rsa.public-key-path}")
     private String publicKeyPath;
 
