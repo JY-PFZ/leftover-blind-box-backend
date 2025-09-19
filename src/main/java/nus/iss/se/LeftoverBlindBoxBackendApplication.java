@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan("nus.iss.se.magicBag.mapper")
+@MapperScan("nus.iss.se.magicbag.mapper")
 public class LeftoverBlindBoxBackendApplication {
 
     public static void main(String[] args) {

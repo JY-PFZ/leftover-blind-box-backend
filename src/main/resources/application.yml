@@ -25,4 +25,4 @@ springdoc:
   group-configs:
     - group: 'public-api'
       paths-to-match: '/api/**'
-      packages-to-scan: nus.iss.se.magicBag.controller
+      packages-to-scan: nus.iss.se.magicbag.controller
