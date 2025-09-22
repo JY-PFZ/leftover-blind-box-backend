@@ -3,7 +3,6 @@ package nus.iss.se.magicbag.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import nus.iss.se.magicbag.auth.UserContextHolder;
 import nus.iss.se.magicbag.auth.service.LoginFailureHandler;
 import nus.iss.se.magicbag.auth.service.LoginSuccessHandler;
 import nus.iss.se.magicbag.auth.service.TokenCacheService;
@@ -15,10 +14,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.AuthenticationException;
@@ -39,7 +36,6 @@ public class SecurityChainConfig {
 
     private final JwtUtil jwtUtil;
     private final ObjectMapper objectMapper;
-    private final UserContextHolder userContextHolder;
     private final UserDetailsService userDetailsService;
     private final TokenCacheService tokenCacheService;
     private final LoginSuccessHandler loginSuccessHandler;
