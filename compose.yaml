@@ -1,5 +1,13 @@
 services:
-  redis:
-    image: 'redis:latest'
+  # 只有你的后端应用需要打包和运行
+  magic-bag-backend:
+    build: .
+    image: magic-bag-backend  # 自定义镜像名为目标名称
     ports:
-      - '6379'
+      - '8081:8080'
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_REDIS_HOST=shinkansen.proxy.rlwy.net     # 远程 Redis 的公网 IP
+      - SPRING_REDIS_PORT=37325
+      - SPRING_REDIS_PASSWORD=kSBzZtCxzRzBKEsejmNMmsQREiWvLthk
+    restart: unless-stopped

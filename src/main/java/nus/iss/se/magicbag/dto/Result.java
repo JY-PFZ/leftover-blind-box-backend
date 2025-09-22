@@ -1,40 +1,45 @@
 package nus.iss.se.magicbag.dto;
 
 import lombok.Data;
-import nus.iss.se.magicbag.common.ResultEnum;
+import lombok.Getter;
+import nus.iss.se.magicbag.exception.ResultEnum;
+import org.apache.commons.lang3.StringUtils;
 
 
 /**
  * @author mijiupro
  */
 
+@Getter
 @Data
 public class Result<T> {
 
-    // 操作代码
-    Integer code;
+    private Integer code;
+    private String message;
+    private T data;
 
-    // 提示信息
-    String message;
-
-    // 结果数据
-    T data;
-
-    public Result(ResultEnum resultCode) {
+    private Result(ResultEnum resultCode) {
         this.code = resultCode.getCode();
         this.message = resultCode.getMessage();
     }
 
-    public Result(ResultEnum resultCode, T data) {
+    private Result(ResultEnum resultCode, T data) {
         this.code = resultCode.getCode();
         this.message = resultCode.getMessage();
         this.data = data;
     }
-    public Result(String message) {
+
+    private Result(Integer code, String message){
+        this.code = code;
         this.message = message;
     }
+
+    private Result(String message) {
+        this.message = message;
+    }
+
     //成功返回封装-无数据
-    public static Result<String> success() {
+    public static <T> Result<T> success() {
         return new Result<>(ResultEnum.SUCCESS);
     }
     //成功返回封装-带数据
@@ -42,17 +47,26 @@ public class Result<T> {
         return new Result<>(ResultEnum.SUCCESS, data);
     }
     //失败返回封装-使用默认提示信息
-    public static Result<String> error() {
+    public static <T> Result<T> error() {
         return new Result<>(ResultEnum.FAIL);
     }
     //失败返回封装-使用返回结果枚举提示信息
-    public static Result<String> error(ResultEnum resultCode) {
+    public static <T> Result<T> error(ResultEnum resultCode) {
         return new Result<>(resultCode);
     }
     //失败返回封装-使用自定义提示信息
-    public static Result<String> error(String message) {
+    public static <T> Result<T> error(String message) {
         return new Result<>(message);
 
+    }
+
+    public static <T> Result<T> error(int code, String message) {
+        return new Result<>(code,message);
+    }
+
+    public static <T> Result<T> error(ResultEnum resultCode, String supplementMessage) {
+        String msg = StringUtils.isBlank(supplementMessage) ? resultCode.getMessage() : resultCode.getMessage() + ": " + supplementMessage;
+        return new Result<>(resultCode.getCode(),msg);
     }
 }
 

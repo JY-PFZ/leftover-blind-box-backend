@@ -1,8 +1,7 @@
-package nus.iss.se.magicbag.common;
+package nus.iss.se.magicbag.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 /**
  * @author mijiupro
@@ -12,23 +11,23 @@ import lombok.Setter;
 public enum ResultEnum {
 
     /* 成功状态码 */
-    SUCCESS(1, "SUCCESS!"),
+    SUCCESS(1, "SUCCESS"),
 
     /* 错误状态码 */
-    FAIL(0, "FAIL!"),
+    FAIL(0, "FAIL"),
 
     /* 参数错误：10001-19999 */
     PARAM_IS_INVALID(10001, "参数无效"),
     PARAM_IS_BLANK(10002, "参数为空"),
-    PARAM_TYPE_BIND_ERROR(10003, "参数格式错误"),
+    PARAM_TYPE_BIND_ERROR(10003, "Parameter Format Error"),
     PARAM_NOT_COMPLETE(10004, "参数缺失"),
 
     /* 用户错误：20001-29999*/
     USER_NOT_LOGGED_IN(20001, "用户未登录，请先登录"),
     USER_LOGIN_ERROR(20002, "账号不存在或密码错误"),
     USER_ACCOUNT_FORBIDDEN(20003, "账号已被禁用"),
-    USER_NOT_EXIST(20004, "用户不存在"),
-    USER_HAS_EXISTED(20005, "user has existed"),
+    USER_NOT_FOUND(20004, "User Not Found"),
+    USER_HAS_EXISTED(20005, "User Has Existed"),
 
     /* 系统错误：40001-49999 */
     FILE_MAX_SIZE_OVERFLOW(40003, "上传尺寸过大"),

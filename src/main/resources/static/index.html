@@ -1,0 +1,63 @@
+<!-- src/main/resources/static/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>RSA 加密登录 Demo</title>
+    <!-- 引入 JSEncrypt -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.2.1/jsencrypt.min.js"></script>
+</head>
+<body>
+<h2>RSA 公钥加密登录演示</h2>
+
+<form id="loginForm">
+    <label>用户名: <input type="text" id="username" /></label><br /><br />
+    <label>密码: <input type="password" id="password" /></label><br /><br />
+    <button type="submit">登录</button>
+</form>
+
+<div id="result"></div>
+
+<script>
+    let publicKeyPem = "";
+
+    // 1. 获取公钥
+    fetch("http://localhost:8080/api/auth/key")
+        .then((res) => res.json())
+        .then((data) => {
+            publicKeyPem = data.data;
+            console.log("✅ 公钥已加载："+publicKeyPem);
+        })
+        .catch((err) => {
+            console.error("❌ 获取公钥失败:", err);
+        });
+
+    // 2. 登录提交
+    document.getElementById("loginForm").onsubmit = async (e) => {
+        e.preventDefault();
+
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        if (!publicKeyPem) {
+            alert("公钥未加载，请稍后重试");
+            return;
+        }
+        // 使用 JSEncrypt 加密
+        const encrypt = new JSEncrypt();
+        encrypt.setPublicKey(publicKeyPem);
+        const encryptedPassword = encrypt.encrypt(password);
+
+        // 发送到后端
+        const res = await fetch("http://localhost:8080/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password: encryptedPassword }),
+        });
+
+        const text = await res.text();
+        document.getElementById("result").innerHTML = `<p>${text}</p>`;
+    };
+</script>
+</body>
+</html>
