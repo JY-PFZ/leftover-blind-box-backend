@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.auth.service.TokenCacheService;
 import nus.iss.se.magicbag.auth.service.UserCacheService;
 import nus.iss.se.magicbag.dto.LoginReq;
-import nus.iss.se.magicbag.dto.RegisterReq;
 import nus.iss.se.magicbag.common.Result;
 import nus.iss.se.magicbag.service.IUserService;
 import nus.iss.se.magicbag.util.BaseUtil;
