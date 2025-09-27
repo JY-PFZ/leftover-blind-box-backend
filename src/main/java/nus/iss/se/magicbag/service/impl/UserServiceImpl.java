@@ -1,36 +1,43 @@
 package nus.iss.se.magicbag.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
-import nus.iss.se.magicbag.auth.UserInfo;
-import nus.iss.se.magicbag.common.event.UserInfoUpdatedEvent;
-import nus.iss.se.magicbag.exception.BusinessException;
-import nus.iss.se.magicbag.exception.ResultEnum;
+import lombok.extern.slf4j.Slf4j;
+import nus.iss.se.magicbag.auth.common.UserContext;
+import nus.iss.se.magicbag.auth.service.UserCacheService;
+import nus.iss.se.magicbag.dto.UserDto;
+import nus.iss.se.magicbag.common.exception.BusinessException;
+import nus.iss.se.magicbag.common.type.ResultStatus;
 import nus.iss.se.magicbag.dto.RegisterReq;
 import nus.iss.se.magicbag.entity.User;
 import nus.iss.se.magicbag.mapper.UserMapper;
 import nus.iss.se.magicbag.service.IUserService;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService{
     private final PasswordEncoder passwordEncoder;
-    private final ApplicationEventPublisher eventPublisher;
+    private final UserCacheService userCacheService;
 
     @Override
+    @Cacheable(value = "users", key = "#username", condition = "#username != null")
     public User findByUsername(String username) {
         return this.baseMapper.selectByUsername(username);
     }
 
     @Override
     public void register(RegisterReq req) {
-        User existUser = findByUsername(req.getUsername());
+        User existUser = this.baseMapper.selectByUsername(req.getUsername());
         if (existUser != null){
-            throw new BusinessException(ResultEnum.USER_HAS_EXISTED, req.getUsername());
+            throw new BusinessException(ResultStatus.USER_HAS_EXISTED, req.getUsername());
         }
 
         User user = new User();
@@ -40,19 +47,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public User updateUserInfo(User dto) {
-        if (StringUtils.isBlank(dto.getUsername())){
-            throw new BusinessException(ResultEnum.USER_NOT_FOUND, "username is null or blank");
-        }
-        User user = findByUsername(dto.getUsername());
-        user.setAvatar(dto.getAvatar());
-        user.setNickname(dto.getNickname());
-        updateById(user);
+    @CachePut(value = "users", key = "#dto.username")
+    public void updateUserInfo(UserDto dto) {
+        LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(User::getUsername,dto.getUsername())
+                .eq(User::getPhone,dto.getPhone())
+                .set(User::getAvatar,dto.getAvatar())
+                .set(User::getNickname,dto.getNickname());
+        update(wrapper);
 
-        // 发布“用户更新事件”
-        eventPublisher.publishEvent(
-                new UserInfoUpdatedEvent(this, UserInfo.build(user), UserInfoUpdatedEvent.EventType.UPDATE)
-        );
-        return user;
+        // redis 更新
+        User user = baseMapper.selectByUsername(dto.getUsername());
+        UserContext userContext = new UserContext();
+        BeanUtils.copyProperties(user,userContext);
+        userCacheService.updateCache(userContext);
+    }
+
+    @Override
+    @CacheEvict(value = "users", key = "#username")
+    public void evictUser(String username) {
+        log.info("Evict user: {}",username);
     }
 }

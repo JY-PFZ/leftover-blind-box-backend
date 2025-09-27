@@ -4,7 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
-import nus.iss.se.magicbag.common.BaseProperties;
+import nus.iss.se.magicbag.common.properties.JwtProperties;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -15,10 +15,10 @@ import java.util.Date;
 @Component
 @RequiredArgsConstructor
 public class JwtUtil {
-    private final BaseProperties baseProperties;
+    private final JwtProperties jwtProperties;
 
     private SecretKey getKey() {
-        return Keys.hmacShaKeyFor(baseProperties.getJwtSecret().getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -30,7 +30,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(subject)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + baseProperties.getJwtExpireMinutes() * 60 * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpireMinutes() * 60 * 1000))
                 .signWith(getKey())
                 .compact();
     }
@@ -48,7 +48,7 @@ public class JwtUtil {
                         .map(Object::toString)
                         .reduce((a, b) -> a + "," + b).orElse(""))
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + baseProperties.getJwtExpireMinutes() * 3600 * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpireMinutes() * 3600 * 1000))
                 .signWith(getKey())
                 .compact();
     }
@@ -89,7 +89,7 @@ public class JwtUtil {
     }
 
     public int getDefaultExpirationMinutes(){
-        return baseProperties.getJwtExpireMinutes();
+        return jwtProperties.getExpireMinutes();
     }
 
     /**
@@ -105,7 +105,7 @@ public class JwtUtil {
     }
 
     public boolean isNeedRenew(String token){
-        return isTokenExpiringWithin(token, baseProperties.getRenewThresholdMinutes());
+        return isTokenExpiringWithin(token, jwtProperties.getRenewThresholdMinutes());
     }
 
 }

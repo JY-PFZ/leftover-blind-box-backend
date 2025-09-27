@@ -3,6 +3,8 @@ package nus.iss.se.magicbag.util;
 import jakarta.servlet.http.HttpServletRequest;
 
 public class BaseUtil {
+    private BaseUtil() {}
+
     /**
      * 从请求头中提取 Bearer Token
      */

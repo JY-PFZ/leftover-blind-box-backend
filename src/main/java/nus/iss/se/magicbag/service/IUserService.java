@@ -1,8 +1,8 @@
 package nus.iss.se.magicbag.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import nus.iss.se.magicbag.dto.LoginReq;
 import nus.iss.se.magicbag.dto.RegisterReq;
+import nus.iss.se.magicbag.dto.UserDto;
 import nus.iss.se.magicbag.entity.User;
 
 public interface IUserService extends IService<User> {
@@ -10,5 +10,7 @@ public interface IUserService extends IService<User> {
 
     void register(RegisterReq req);
 
-    User updateUserInfo(User user);
+    void updateUserInfo(UserDto user);
+
+    void evictUser(String username);
 }

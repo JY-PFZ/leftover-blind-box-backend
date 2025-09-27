@@ -1,12 +1,12 @@
-package nus.iss.se.magicbag.auth.service;
+package nus.iss.se.magicbag.auth.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nus.iss.se.magicbag.dto.Result;
-import nus.iss.se.magicbag.exception.ResultEnum;
+import nus.iss.se.magicbag.common.Result;
+import nus.iss.se.magicbag.common.type.ResultStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
@@ -37,7 +37,7 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
         if (exception instanceof BadCredentialsException){
             message = "Invalid username or password";
         }
-        String json = objectMapper.writeValueAsString(Result.error(ResultEnum.FAIL,message));
+        String json = objectMapper.writeValueAsString(Result.error(ResultStatus.FAIL,message));
         response.getWriter().write(json);
     }
 }

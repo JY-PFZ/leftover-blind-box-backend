@@ -1,3 +1,6 @@
+server:
+  port: 10016
+
 spring:
   # 数据库配置 - MySQL
   datasource:
@@ -20,18 +23,13 @@ spring:
           max-wait: 200ms
           min-idle: 0
 
-
-logging:
-  level:
-    org.springframework.security: DEBUG
-
 # ---------- JWT 配置 ----------
-jwt:
-  secret: k3b8Xq1v2Zm9Yp6Wn5Lr8As3Dx7Cv1Bn9Mq4Xs8Vj2Kp5Lw9Zt6Eq4Am8Nq1Vp5Lw9Zt6Eq4Am8Nq1Vp5Lw9Zt6Eq4A==
-  expire-Minutes: 120  #小时
-  renew-threshold-minutes: 30
-
-rsa:
-  boot: false
-  public-key-path: .keys/public-key.pem
-  private-key-path: .keys/private-key.pem
+common:
+  jwt:
+    secret: k3b8Xq1v2Zm9Yp6Wn5Lr8As3Dx7Cv1Bn9Mq4Xs8Vj2Kp5Lw9Zt6Eq4Am8Nq1Vp5Lw9Zt6Eq4Am8Nq1Vp5Lw9Zt6Eq4A==
+    expire-minutes: 120
+    renew-threshold-minutes: 30
+  rsa:
+    boot: true
+    public-key-path: .keys/public-key.pem
+    private-key-path: .keys/private-key.pem

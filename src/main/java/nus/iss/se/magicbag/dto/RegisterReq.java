@@ -16,4 +16,7 @@ public class RegisterReq {
     @NotBlank(message = "password is null")
     @Schema(description = "Password (The front end needs to be encrypted with RSA public key before transmission)", example = "AQIDBAUG...")
     private String password;
+
+    @NotBlank(message = "role is not defined")
+    private String role;
 }

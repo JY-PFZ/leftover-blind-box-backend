@@ -1,39 +1,30 @@
-package nus.iss.se.magicbag.auth;
+package nus.iss.se.magicbag.auth.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import nus.iss.se.magicbag.auth.common.UserContext;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 
-
-@AllArgsConstructor
-@NoArgsConstructor
-public class LoginUser implements UserDetails, Serializable {
-    @Getter
-    private UserInfo userInfo;
-
+public record MyUserDetails(UserContext userContext, String password) implements UserDetails {
     //返回权限信息
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+ userInfo.getRole().toUpperCase()));
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + userContext.getRole().toUpperCase()));
     }
 
     //返回用户密码
     @Override
     public String getPassword() {
-        return userInfo.getPassword();
+        return this.password;
     }
 
     //返回用户账号
     @Override
     public String getUsername() {
-        return userInfo.getUsername();
+        return userContext.getUsername();
     }
 
     @Override

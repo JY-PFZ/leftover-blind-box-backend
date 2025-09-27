@@ -1,7 +1,8 @@
-package nus.iss.se.magicbag.exception;
+package nus.iss.se.magicbag.common.exception;
 
 import lombok.extern.slf4j.Slf4j;
-import nus.iss.se.magicbag.dto.Result;
+import nus.iss.se.magicbag.common.Result;
+import nus.iss.se.magicbag.common.type.ResultStatus;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,7 +19,7 @@ public class GlobalExceptionHandler {
         log.error(ExceptionUtils.getStackTrace(e));
         return ResponseEntity
                 .badRequest()
-                .body(Result.error(ResultEnum.FAIL,e.getMessage()));
+                .body(Result.error(ResultStatus.FAIL,e.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -27,7 +28,7 @@ public class GlobalExceptionHandler {
         String errorMessage = Objects.requireNonNull(e.getBindingResult()
                         .getFieldError())
                 .getDefaultMessage();
-        return ResponseEntity.ok(Result.error(ResultEnum.FAIL, errorMessage));
+        return ResponseEntity.ok(Result.error(ResultStatus.FAIL, errorMessage));
     }
 
     @ExceptionHandler(BusinessException.class)
