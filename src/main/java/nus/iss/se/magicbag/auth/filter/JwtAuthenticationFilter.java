@@ -1,4 +1,4 @@
-package nus.iss.se.magicbag.filter;
+package nus.iss.se.magicbag.auth.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -6,12 +6,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import nus.iss.se.magicbag.auth.common.UserContextHolder;
+import nus.iss.se.magicbag.auth.entity.MyUserDetails;
 import nus.iss.se.magicbag.auth.service.TokenCacheService;
 import nus.iss.se.magicbag.util.BaseUtil;
 import nus.iss.se.magicbag.util.JwtUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -23,6 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
     private final TokenCacheService tokenCacheService;
+    private final UserContextHolder userContextHolder;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain chain)
@@ -33,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String username = jwtUtil.getClaims(token).getSubject();
 
             // 加载用户信息
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            MyUserDetails userDetails = (MyUserDetails)userDetailsService.loadUserByUsername(username);
 
             // 构建 Authentication 对象
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -41,6 +43,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 存入 SecurityContext
             SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            // 存入 UserContext
+            userContextHolder.setCurrentUser(userDetails.userContext());
 
             // 智能续期，当token快要过期时，如果用户还活跃，自动续期。
             if (jwtUtil.isNeedRenew(token)) {

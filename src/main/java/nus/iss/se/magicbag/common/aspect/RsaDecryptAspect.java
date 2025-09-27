@@ -2,10 +2,10 @@ package nus.iss.se.magicbag.common.aspect;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nus.iss.se.magicbag.common.RsaProperties;
+import nus.iss.se.magicbag.common.properties.RsaProperties;
 import nus.iss.se.magicbag.common.annotation.RsaDecrypt;
-import nus.iss.se.magicbag.exception.BusinessException;
-import nus.iss.se.magicbag.exception.ResultEnum;
+import nus.iss.se.magicbag.common.exception.BusinessException;
+import nus.iss.se.magicbag.common.type.ResultStatus;
 import nus.iss.se.magicbag.util.RsaUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -64,7 +64,7 @@ public class RsaDecryptAspect {
                 log.error("Decryption failure: {}.{}", obj.getClass().getSimpleName(), field.getName(), e);
 
                 if ("password".equals(field.getName())) {
-                    throw new BusinessException(ResultEnum.PARAM_TYPE_BIND_ERROR, "Password decryption failed");
+                    throw new BusinessException(ResultStatus.PARAM_TYPE_BIND_ERROR, "Password decryption failed");
                 }
             }
         });

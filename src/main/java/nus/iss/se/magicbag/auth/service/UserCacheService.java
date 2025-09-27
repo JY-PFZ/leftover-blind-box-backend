@@ -2,8 +2,8 @@ package nus.iss.se.magicbag.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nus.iss.se.magicbag.auth.UserInfo;
-import nus.iss.se.magicbag.common.RedisKeyPrefix;
+import nus.iss.se.magicbag.auth.common.UserContext;
+import nus.iss.se.magicbag.common.type.RedisPrefix;
 import nus.iss.se.magicbag.util.RedisUtil;
 import org.springframework.stereotype.Service;
 
@@ -18,26 +18,24 @@ public class UserCacheService {
     private static final Duration USER_CACHE_TTL = Duration.ofHours(2);
     private static final Duration RENEW_THRESHOLD = Duration.ofMinutes(30);
 
-    public UserInfo getCachedUser(String username) {
+    public UserContext getCachedUser(String username) {
         String key = getCacheKey(username);
-        UserInfo cachedUserInfo = redisUtil.getJson(key, UserInfo.class);
-        if (cachedUserInfo != null){
-            // 缓存命中后， 判断是否需要续期，当生命周期小于30min时自动续期
-            if (redisUtil.getExpire(key,TimeUnit.SECONDS) < RENEW_THRESHOLD.getSeconds()){
-                redisUtil.expire(key, USER_CACHE_TTL.getSeconds(), TimeUnit.SECONDS);
-                log.debug("Redis User cache renewed for: {}",username);
-            }
+        UserContext cachedUserContext = redisUtil.getJson(key, UserContext.class);
+        // 缓存命中后， 判断是否需要续期，当生命周期小于30min时自动续期
+        if (cachedUserContext != null && redisUtil.getExpire(key,TimeUnit.SECONDS) < RENEW_THRESHOLD.getSeconds()){
+            redisUtil.expire(key, USER_CACHE_TTL.getSeconds(), TimeUnit.SECONDS);
+            log.debug("Redis User cache renewed for: {}",username);
         }
-        return cachedUserInfo;
+        return cachedUserContext;
     }
 
-    public void updateCache(UserInfo userInfo) {
-        cacheUser(userInfo);
+    public void updateCache(UserContext userContext) {
+        cacheUser(userContext);
     }
 
-    public void cacheUser(UserInfo userInfo) {
+    public void cacheUser(UserContext userContext) {
         // userInfo中password注解实现移除敏感信息，缓存
-        redisUtil.setJson(getCacheKey(userInfo.getUsername()),userInfo,USER_CACHE_TTL.getSeconds(), TimeUnit.SECONDS);
+        redisUtil.setJson(getCacheKey(userContext.getUsername()), userContext,USER_CACHE_TTL.getSeconds(), TimeUnit.SECONDS);
     }
 
     /**
@@ -48,6 +46,6 @@ public class UserCacheService {
     }
 
     private String getCacheKey(String username) {
-        return RedisKeyPrefix.USER_INFO + username;
+        return RedisPrefix.USER_INFO + username;
     }
 }

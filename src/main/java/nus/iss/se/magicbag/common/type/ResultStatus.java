@@ -1,4 +1,4 @@
-package nus.iss.se.magicbag.exception;
+package nus.iss.se.magicbag.common.type;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum ResultEnum {
+public enum ResultStatus {
 
     /* 成功状态码 */
     SUCCESS(1, "SUCCESS"),

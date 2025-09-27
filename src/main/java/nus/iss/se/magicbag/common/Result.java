@@ -1,8 +1,8 @@
-package nus.iss.se.magicbag.dto;
+package nus.iss.se.magicbag.common;
 
 import lombok.Data;
 import lombok.Getter;
-import nus.iss.se.magicbag.exception.ResultEnum;
+import nus.iss.se.magicbag.common.type.ResultStatus;
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -18,12 +18,12 @@ public class Result<T> {
     private String message;
     private T data;
 
-    private Result(ResultEnum resultCode) {
+    private Result(ResultStatus resultCode) {
         this.code = resultCode.getCode();
         this.message = resultCode.getMessage();
     }
 
-    private Result(ResultEnum resultCode, T data) {
+    private Result(ResultStatus resultCode, T data) {
         this.code = resultCode.getCode();
         this.message = resultCode.getMessage();
         this.data = data;
@@ -40,18 +40,18 @@ public class Result<T> {
 
     //成功返回封装-无数据
     public static <T> Result<T> success() {
-        return new Result<>(ResultEnum.SUCCESS);
+        return new Result<>(ResultStatus.SUCCESS);
     }
     //成功返回封装-带数据
     public static <T> Result<T> success(T data) {
-        return new Result<>(ResultEnum.SUCCESS, data);
+        return new Result<>(ResultStatus.SUCCESS, data);
     }
     //失败返回封装-使用默认提示信息
     public static <T> Result<T> error() {
-        return new Result<>(ResultEnum.FAIL);
+        return new Result<>(ResultStatus.FAIL);
     }
     //失败返回封装-使用返回结果枚举提示信息
-    public static <T> Result<T> error(ResultEnum resultCode) {
+    public static <T> Result<T> error(ResultStatus resultCode) {
         return new Result<>(resultCode);
     }
     //失败返回封装-使用自定义提示信息
@@ -64,7 +64,7 @@ public class Result<T> {
         return new Result<>(code,message);
     }
 
-    public static <T> Result<T> error(ResultEnum resultCode, String supplementMessage) {
+    public static <T> Result<T> error(ResultStatus resultCode, String supplementMessage) {
         String msg = StringUtils.isBlank(supplementMessage) ? resultCode.getMessage() : resultCode.getMessage() + ": " + supplementMessage;
         return new Result<>(resultCode.getCode(),msg);
     }

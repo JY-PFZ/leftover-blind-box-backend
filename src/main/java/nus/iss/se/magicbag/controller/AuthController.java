@@ -9,17 +9,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nus.iss.se.magicbag.auth.UserInfo;
 import nus.iss.se.magicbag.auth.service.TokenCacheService;
-import nus.iss.se.magicbag.common.event.UserInfoUpdatedEvent;
+import nus.iss.se.magicbag.auth.service.UserCacheService;
 import nus.iss.se.magicbag.dto.LoginReq;
 import nus.iss.se.magicbag.dto.RegisterReq;
-import nus.iss.se.magicbag.dto.Result;
+import nus.iss.se.magicbag.common.Result;
 import nus.iss.se.magicbag.service.IUserService;
 import nus.iss.se.magicbag.util.BaseUtil;
 import nus.iss.se.magicbag.util.JwtUtil;
 import nus.iss.se.magicbag.util.RsaUtil;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +34,7 @@ public class AuthController {
     private final RsaUtil rsaUtil;
     private final IUserService userService;
     private final TokenCacheService tokenCacheService;
-    private final ApplicationEventPublisher eventPublisher;
+    private final UserCacheService userCacheService;
 
     @GetMapping("/key")
     @Operation(summary = "Obtain the RSA public key", description = "Return the Pem of the RSA public key for front-end encryption")
@@ -58,12 +56,6 @@ public class AuthController {
         return Result.success();
     }
 
-    @PostMapping("/register")
-    public Result<String> register(@RequestBody @Valid RegisterReq req){
-        userService.register(req);
-        return Result.success();
-    }
-
     @PostMapping("/logout")
     public Result<String> logout(HttpServletRequest request) {
         String token = BaseUtil.getTokenFromRequest(request);
@@ -75,10 +67,8 @@ public class AuthController {
             tokenCacheService.revokeToken(token);
 
             // 2. 清除用户信息上下文和redis缓存
-            UserInfo userInfo = new UserInfo();
-            userInfo.setUsername(username);
-            eventPublisher.publishEvent(new UserInfoUpdatedEvent(this, userInfo, UserInfoUpdatedEvent.EventType.DELETE));
-
+            userCacheService.deleteUserCache(username);
+            userService.evictUser(username);
             log.info("User logout: {}", username);
         }
         return Result.success();
