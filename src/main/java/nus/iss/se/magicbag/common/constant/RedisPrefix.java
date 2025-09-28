@@ -11,7 +11,9 @@ import lombok.Getter;
 public enum RedisPrefix {
     AUTH_TOKEN("auth:token:","cache user's token"),
     AUTH_USER("auth:user:","user-token mapping"),
-    USER_INFO("user:info:", "cache user's info");
+    USER_INFO("user:info:", "cache user's info"),
+
+    ACCOUNT_ACTIVATE_TOKEN("auth:activate:token:","activate user account");
 
     private final String code;
     private final String description;

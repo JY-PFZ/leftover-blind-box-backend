@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -13,11 +14,15 @@ import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.auth.entity.MyUserDetails;
 import nus.iss.se.magicbag.auth.service.TokenCacheService;
 import nus.iss.se.magicbag.auth.service.UserCacheService;
+import nus.iss.se.magicbag.common.constant.RedisPrefix;
+import nus.iss.se.magicbag.common.constant.ResultStatus;
 import nus.iss.se.magicbag.dto.LoginReq;
 import nus.iss.se.magicbag.common.Result;
+import nus.iss.se.magicbag.service.EmailService;
 import nus.iss.se.magicbag.service.IUserService;
 import nus.iss.se.magicbag.util.BaseUtil;
 import nus.iss.se.magicbag.util.JwtUtil;
+import nus.iss.se.magicbag.util.RedisUtil;
 import nus.iss.se.magicbag.util.RsaUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,6 +40,8 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final RsaUtil rsaUtil;
+    private final RedisUtil redisUtil;
+    private final EmailService emailService;
     private final IUserService userService;
     private final TokenCacheService tokenCacheService;
     private final UserCacheService userCacheService;
@@ -94,6 +101,29 @@ public class AuthController {
             userService.evictUser(username);
             log.info("User logout: {}", username);
         }
+        return Result.success();
+    }
+
+    @GetMapping("/activate")
+    @Operation(summary = "Activate User Account", description = "Verify the token which is stored in the redis and mapped to a user account. if verified success, change the account status to active")
+    public Result<Void> activate(@RequestParam String token){
+        String key = RedisPrefix.ACCOUNT_ACTIVATE_TOKEN.getCode() + token;
+        String username = redisUtil.get(key);
+        if (username == null){
+            return Result.error(ResultStatus.USER_ACTIVATE_TOKEN_EXPIRE);
+        }
+
+        // 激活用户
+        userService.activateUser(username);
+        // 移除token
+        redisUtil.delete(key);
+        return Result.success();
+    }
+
+    @PostMapping("/activate/resend/{username}")
+    @Operation(summary = "resend activate link", description = "Re-enter account and password. After verification is successful, an activation link will be sent.")
+    public Result<Void> resendActivateMail(@PathVariable String username) throws MessagingException {
+        emailService.sendActivationEmail(username);
         return Result.success();
     }
 }
