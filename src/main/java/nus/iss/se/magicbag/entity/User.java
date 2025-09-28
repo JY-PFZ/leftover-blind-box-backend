@@ -2,7 +2,6 @@ package nus.iss.se.magicbag.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.util.Date;
@@ -20,4 +19,5 @@ public class User {
     private String avatar;
     private Date createdAt;
     private Date updatedAt;
+    private Integer status;
 }

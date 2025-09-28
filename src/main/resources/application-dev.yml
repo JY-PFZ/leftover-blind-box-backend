@@ -23,6 +23,23 @@ spring:
           max-wait: 200ms
           min-idle: 0
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: magicbag.noreply@gmail.com
+    password: pwnu enib nibx mbny
+    protocol: smtp
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 # ---------- JWT 配置 ----------
 common:
   jwt:

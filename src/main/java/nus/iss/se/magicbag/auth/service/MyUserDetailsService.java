@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.auth.entity.MyUserDetails;
 import nus.iss.se.magicbag.auth.common.UserContext;
+import nus.iss.se.magicbag.common.constant.UserStatus;
 import nus.iss.se.magicbag.entity.User;
 import nus.iss.se.magicbag.common.constant.ResultStatus;
 import nus.iss.se.magicbag.service.IUserService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,6 +29,9 @@ public class MyUserDetailsService implements UserDetailsService {
         User user = userService.findByUsername(username);
         if (user == null){
             throw new UsernameNotFoundException(ResultStatus.USER_NOT_FOUND + ": " + username);
+        }else if (user.getStatus() == UserStatus.INACTIVE.getCode()) {
+            // 用户未激活
+            throw new BadCredentialsException(ResultStatus.USER_ACCOUNT_NOT_ACTIVATE.getMessage() + ": "+ username);
         }
         // 构造用户信息
         UserContext userContext = new UserContext();

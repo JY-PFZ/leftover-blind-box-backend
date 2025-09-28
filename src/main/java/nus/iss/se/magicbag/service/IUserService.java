@@ -10,6 +10,8 @@ public interface IUserService extends IService<User> {
 
     void register(RegisterReq req);
 
+    void activateUser(String username);
+
     void updateUserInfo(UserDto user);
 
     void evictUser(String username);
