@@ -1,4 +1,4 @@
-package nus.iss.se.magicbag.common.type;
+package nus.iss.se.magicbag.common.constant;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

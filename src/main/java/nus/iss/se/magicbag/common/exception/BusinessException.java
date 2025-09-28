@@ -1,7 +1,7 @@
 package nus.iss.se.magicbag.common.exception;
 
 import lombok.Getter;
-import nus.iss.se.magicbag.common.type.ResultStatus;
+import nus.iss.se.magicbag.common.constant.ResultStatus;
 import org.apache.commons.lang3.StringUtils;
 
 public class BusinessException extends RuntimeException {

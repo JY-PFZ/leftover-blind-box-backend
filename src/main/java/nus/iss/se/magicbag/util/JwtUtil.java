@@ -5,7 +5,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import nus.iss.se.magicbag.common.properties.JwtProperties;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -26,7 +25,7 @@ public class JwtUtil {
      * @param subject 主题（如用户ID）
      * @return token
      */
-    public String generateToken(String subject) {
+    public String generateAuthToken(String subject) {
         return Jwts.builder()
                 .setSubject(subject)
                 .setIssuedAt(new Date())
@@ -38,17 +37,15 @@ public class JwtUtil {
     /**
      * 生成 JWT Token
      * @param username 用户名
-     * @param authorities 角色（user/merchant/admin）
+     * @param role 角色（user/merchant/admin
      * @return token
      */
-    public String generateToken(String username, java.util.Collection<? extends GrantedAuthority> authorities) {
+    public String generateAuthToken(String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
-                .claim("roles", authorities.stream()
-                        .map(Object::toString)
-                        .reduce((a, b) -> a + "," + b).orElse(""))
+                .claim("roles",role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpireMinutes() * 3600 * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpireMinutes() * 60 * 1000))
                 .signWith(getKey())
                 .compact();
     }

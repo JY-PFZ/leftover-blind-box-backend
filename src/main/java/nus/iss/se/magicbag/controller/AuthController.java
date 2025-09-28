@@ -6,9 +6,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nus.iss.se.magicbag.auth.entity.MyUserDetails;
 import nus.iss.se.magicbag.auth.service.TokenCacheService;
 import nus.iss.se.magicbag.auth.service.UserCacheService;
 import nus.iss.se.magicbag.dto.LoginReq;
@@ -19,6 +21,8 @@ import nus.iss.se.magicbag.util.JwtUtil;
 import nus.iss.se.magicbag.util.RsaUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -47,11 +51,31 @@ public class AuthController {
     @Operation(summary = "user login", description = "Submit after encrypting the password with RSA")
     @ApiResponse(responseCode = "200", description = "login success")
     @ApiResponse(responseCode = "400", description = "login fail")
-    public Result<Void> login(@RequestBody @Valid LoginReq request) {
+    public Result<Void> login(HttpServletResponse response, @RequestBody @Valid LoginReq loginReq) {
         // 1. 认证（会调用 UserDetailsServiceImpl）
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginReq.getUsername(), loginReq.getPassword())
         );
+        // 存入 SecurityContext
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // 2. 获取user信息
+        MyUserDetails userDetails = (MyUserDetails) authentication.getPrincipal();
+
+        // 3. 生成 JWT 令牌
+        String token = jwtUtil.generateAuthToken(userDetails.getUsername(), userDetails.userContext().getRole());
+
+        // 4.把token放到redis中
+        tokenCacheService.saveToken(userDetails.getUsername(), token, jwtUtil.getDefaultExpirationMinutes() + 5);
+
+        // 5. 发布事件，把用户信息存到redis中
+        userCacheService.cacheUser(userDetails.userContext());
+
+        // 6. 返回 Token 给前端
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
+        response.setHeader("X-New-Token", token);
+
         return Result.success();
     }
 

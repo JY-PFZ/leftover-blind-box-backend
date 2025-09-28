@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        p {
+            margin-bottom: 16px;
+        }
+        .button {
+            display: block;
+            width: 300px;
+            margin: 40px auto;
+            padding: 14px;
+            background-color: #4a90e2;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .link {
+            color: #1a73e8;
+            text-decoration: underline;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Activate your MagicBag Account</h1>
+    <p>Thank you for joining MagicBag.</p>
+    <p>You entered <a href="mailto:%s" class="link">%s</a> as your MagicBag Account. To verify your email, click "Activate Now" to confirm your email address:</p>
+    <a href="%s" class="button">Activate Now</a>
+    <p>Or copy and paste the following link into your browser:<br>
+        <a href="%s" class="link">%s</a>
+    </p>
+    <p>The link will expire in 3 hours.</p>
+    <p>If it wasn't you, please ignore this message.</p>
+
+    <div class="footer">
+        Best Regards,<br>
+        MagicBag Group
+    </div>
+</div>
+</body>
+</html>

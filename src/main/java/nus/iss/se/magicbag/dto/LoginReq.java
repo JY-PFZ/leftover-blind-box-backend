@@ -3,11 +3,15 @@ package nus.iss.se.magicbag.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import nus.iss.se.magicbag.common.annotation.RsaDecrypt;
 
 @Getter
 @Schema(description = "Login request parameters")
+@AllArgsConstructor
+@NoArgsConstructor
 public class LoginReq {
     @NotBlank(message = "username is null")
     @Email(message = "Please enter the correct email")
@@ -18,6 +22,4 @@ public class LoginReq {
     @NotBlank(message = "password is null")
     @Schema(description = "Password (The front end needs to be encrypted with RSA public key before transmission)", example = "AQIDBAUG...")
     private String password;
-
-    private String phone;
 }

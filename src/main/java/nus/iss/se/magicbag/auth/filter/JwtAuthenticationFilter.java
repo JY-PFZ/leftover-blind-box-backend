@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 智能续期，当token快要过期时，如果用户还活跃，自动续期。
             if (jwtUtil.isNeedRenew(token)) {
-                String newToken = jwtUtil.generateToken(userDetails.getUsername(),userDetails.getAuthorities());
+                String newToken = jwtUtil.generateAuthToken(userDetails.getUsername(),userDetails.userContext().getRole());
 
                 // 为了防止网络延迟等原因，redis过期时间比jwt失效时间多5分钟
                 tokenCacheService.saveToken(username, token,jwtUtil.getDefaultExpirationMinutes() + 5);
