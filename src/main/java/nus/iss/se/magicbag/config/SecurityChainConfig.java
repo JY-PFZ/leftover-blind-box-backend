@@ -5,11 +5,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.auth.common.UserContextHolder;
-import nus.iss.se.magicbag.auth.handler.LoginFailureHandler;
-import nus.iss.se.magicbag.auth.handler.LoginSuccessHandler;
 import nus.iss.se.magicbag.auth.service.TokenCacheService;
 import nus.iss.se.magicbag.common.Result;
-import nus.iss.se.magicbag.common.type.ResultStatus;
+import nus.iss.se.magicbag.common.constant.ResultStatus;
 import nus.iss.se.magicbag.auth.filter.JwtAuthenticationFilter;
 import nus.iss.se.magicbag.util.JwtUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -43,8 +41,6 @@ public class SecurityChainConfig {
     private final UserContextHolder userContextHolder;
     private final UserDetailsService userDetailsService;
     private final TokenCacheService tokenCacheService;
-    private final LoginSuccessHandler loginSuccessHandler;
-    private final LoginFailureHandler loginFailureHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -62,15 +58,7 @@ public class SecurityChainConfig {
                         .requestMatchers(HttpMethod.OPTIONS).permitAll()  // 放行 OPTIONS 预检
                         .anyRequest().authenticated()
                 )
-//                .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
-                .formLogin(form -> form
-                        .loginProcessingUrl("/api/auth/login")
-                                .usernameParameter("username")
-                                .passwordParameter("password")
-                        .successHandler(loginSuccessHandler)
-                        .failureHandler(loginFailureHandler)
-                )
-//                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> handleAuthenticationFail(response,authException))
                 )

@@ -8,7 +8,7 @@ import nus.iss.se.magicbag.auth.common.UserContext;
 import nus.iss.se.magicbag.auth.service.UserCacheService;
 import nus.iss.se.magicbag.dto.UserDto;
 import nus.iss.se.magicbag.common.exception.BusinessException;
-import nus.iss.se.magicbag.common.type.ResultStatus;
+import nus.iss.se.magicbag.common.constant.ResultStatus;
 import nus.iss.se.magicbag.dto.RegisterReq;
 import nus.iss.se.magicbag.entity.User;
 import nus.iss.se.magicbag.mapper.UserMapper;

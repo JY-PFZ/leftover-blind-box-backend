@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.auth.entity.MyUserDetails;
 import nus.iss.se.magicbag.auth.common.UserContext;
 import nus.iss.se.magicbag.entity.User;
-import nus.iss.se.magicbag.common.type.ResultStatus;
+import nus.iss.se.magicbag.common.constant.ResultStatus;
 import nus.iss.se.magicbag.service.IUserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.core.userdetails.UserDetails;

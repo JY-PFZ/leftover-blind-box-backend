@@ -2,7 +2,7 @@ package nus.iss.se.magicbag.common.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.common.Result;
-import nus.iss.se.magicbag.common.type.ResultStatus;
+import nus.iss.se.magicbag.common.constant.ResultStatus;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

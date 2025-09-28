@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.common.properties.RsaProperties;
 import nus.iss.se.magicbag.common.annotation.RsaDecrypt;
 import nus.iss.se.magicbag.common.exception.BusinessException;
-import nus.iss.se.magicbag.common.type.ResultStatus;
+import nus.iss.se.magicbag.common.constant.ResultStatus;
 import nus.iss.se.magicbag.util.RsaUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

@@ -2,7 +2,7 @@ package nus.iss.se.magicbag.common;
 
 import lombok.Data;
 import lombok.Getter;
-import nus.iss.se.magicbag.common.type.ResultStatus;
+import nus.iss.se.magicbag.common.constant.ResultStatus;
 import org.apache.commons.lang3.StringUtils;
 
 

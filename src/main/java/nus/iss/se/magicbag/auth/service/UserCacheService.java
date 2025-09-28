@@ -3,7 +3,7 @@ package nus.iss.se.magicbag.auth.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.auth.common.UserContext;
-import nus.iss.se.magicbag.common.type.RedisPrefix;
+import nus.iss.se.magicbag.common.constant.RedisPrefix;
 import nus.iss.se.magicbag.util.RedisUtil;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +46,6 @@ public class UserCacheService {
     }
 
     private String getCacheKey(String username) {
-        return RedisPrefix.USER_INFO + username;
+        return RedisPrefix.USER_INFO.getCode() + username;
     }
 }

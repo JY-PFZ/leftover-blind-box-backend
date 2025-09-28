@@ -1,4 +1,4 @@
-package nus.iss.se.magicbag.common.type;
+package nus.iss.se.magicbag.common.constant;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,6 +28,9 @@ public enum ResultStatus {
     USER_ACCOUNT_FORBIDDEN(20003, "账号已被禁用"),
     USER_NOT_FOUND(20004, "User Not Found"),
     USER_HAS_EXISTED(20005, "User Has Existed"),
+    USER_ROLE_NOT_FOUND(20006,"User Role Not Found"),
+    USER_ACTIVATE_TOKEN_EXPIRE(20007,"Activate Token Expired"),
+    USER_ACCOUNT_NOT_ACTIVATE(20008,"User Account Not Activate"),
 
     /* 系统错误：40001-49999 */
     FILE_MAX_SIZE_OVERFLOW(40003, "上传尺寸过大"),
