@@ -47,6 +47,6 @@ common:
     expire-minutes: 120
     renew-threshold-minutes: 30
   rsa:
-    boot: true
+    boot: false
     public-key-path: .keys/public-key.pem
     private-key-path: .keys/private-key.pem
