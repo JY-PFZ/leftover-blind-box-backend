@@ -18,5 +18,6 @@ public class RegisterReq {
     private String password;
 
     @NotBlank(message = "role is not defined")
+    @Schema(description = "role, now we just allow a user having only one role", example = "USER/MERCHANT/ADMIN")
     private String role;
 }
