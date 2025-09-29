@@ -77,7 +77,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    @CachePut(value = "users", key = "#username")
+    @CacheEvict(value = "users", key = "#username")
     public void activateUser(String username) {
         LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(User::getUsername,username)
