@@ -15,7 +15,6 @@ import nus.iss.se.magicbag.interfacemethods.CartInterface;
 import nus.iss.se.magicbag.repository.CartItemRepository;
 import nus.iss.se.magicbag.repository.CartRepository;
 import nus.iss.se.magicbag.repository.MagicBagRepository;
-import nus.iss.se.magicbag.repository.UserRepository;
 
 @Service
 
@@ -27,8 +26,6 @@ public class CartImpl implements CartInterface {
 	    @Autowired
 	    private CartItemRepository cartItemRepository;
 
-	    @Autowired
-	    private UserRepository userRepository;
 	    
 	    @Autowired
 	    private MagicBagRepository magicbagRepository;

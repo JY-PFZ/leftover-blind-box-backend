@@ -9,6 +9,6 @@ import nus.iss.se.magicbag.entity.Cart;
 
 public interface CartRepository extends JpaRepository<Cart, Integer> {
 
-    @Query("SELECT c FROM Cart c WHERE c.user.id = :userid")
+    @Query("SELECT c FROM Cart c WHERE c.userId = :userid")
     Cart findByUserId(@Param("userid") Integer userid);
 }
