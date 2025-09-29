@@ -34,21 +34,21 @@ public class CartImpl implements CartInterface {
 	    private MagicBagRepository magicbagRepository;
 	    
 	    @Override
-	    public Cart createCart(long userId) {
+	    public Cart createCart(Integer userId) {
 	        Cart cart = new Cart();
-	        cart.setUserId(userRepository.findById(userId).get().getId());
+	        cart.setUserId(userId);
 	        cart.setCreatedAt(LocalDateTime.now());
 	        cart.setUpdatedAt(LocalDateTime.now());
 	        return cartRepository.save(cart);
 	    }
 	    
 		@Override
-		public Cart getActiveCart(long userId) {
+		public Cart getActiveCart(Integer userId) {
 	        return cartRepository.findByUserId(userId);
 		}
 		
 	    @Override
-	    public Cart addItemToCart(long userId, long magicbagId, int quantity) {
+	    public Cart addItemToCart(Integer userId, Integer magicbagId, int quantity) {
 	        Cart cart = getActiveCart(userId);
 	        Optional<CartItem> existingCartItem = cartItemRepository.findByCartIdAndMagicBagId(cart.getCartId(), magicbagId); 
 	        MagicBag magicbag = magicbagRepository.findById(magicbagId).get();  
@@ -72,7 +72,7 @@ public class CartImpl implements CartInterface {
 	        return cartRepository.save(cart);
 	    }
 		@Override
-		public Cart updateItemQuantityInCart(long userId, long magicbagId, int newQuantity) {
+		public Cart updateItemQuantityInCart(Integer userId, Integer magicbagId, int newQuantity) {
 			Cart cart = getActiveCart(userId);
 		    Optional<CartItem> existingCartItem = cartItemRepository.findByCartIdAndMagicBagId(cart.getCartId(), magicbagId);
 		    if (newQuantity < 0) {
@@ -101,7 +101,7 @@ public class CartImpl implements CartInterface {
 		}
 
 		@Override
-		public Cart removeItemFromCart(long userId, long magicbagId) {
+		public Cart removeItemFromCart(Integer userId, Integer magicbagId) {
 		    Cart cart = getActiveCart(userId);
 
 		    Optional<CartItem> existingCartItem = cartItemRepository.findByCartIdAndMagicBagId(
@@ -118,13 +118,13 @@ public class CartImpl implements CartInterface {
 
 
 		@Override
-		public List<CartItem> getCartItems(long userId) {
+		public List<CartItem> getCartItems(Integer userId) {
 	        Cart cart = getActiveCart(userId);
 	        return cart.getCartItems();
 		}
 
 		@Override
-		public Cart clearCart(long userId) {
+		public Cart clearCart(Integer userId) {
 		       Cart cart = getActiveCart(userId);
 		       cartItemRepository.deleteByCartId(cart.getCartId());
 		       cart.setUpdatedAt(LocalDateTime.now());
@@ -132,7 +132,7 @@ public class CartImpl implements CartInterface {
 		}
 
 		@Override
-		public double getTotal(long userId) {
+		public double getTotal(Integer userId) {
 	        Cart cart = getActiveCart(userId);
 	        double total = cart.getCartItems()
 	                           .stream()
@@ -142,8 +142,8 @@ public class CartImpl implements CartInterface {
 		}
 
 		@Override
-		public List<CartItem> getCartItemsByMagicBagId(long id) {
-		   	return cartItemRepository.findCartItemsByMagicBagId(id);
+		public List<CartItem> getCartItemsByMagicBagId(Integer magicbagid) {
+		   	return cartItemRepository.findCartItemsByMagicBagId(magicbagid);
 		}
 
 }

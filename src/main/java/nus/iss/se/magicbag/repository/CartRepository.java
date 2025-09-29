@@ -7,8 +7,8 @@ import org.springframework.data.repository.query.Param;
 import nus.iss.se.magicbag.entity.Cart;
 
 
-public interface CartRepository extends JpaRepository<Cart, Long> {
+public interface CartRepository extends JpaRepository<Cart, Integer> {
 
     @Query("SELECT c FROM Cart c WHERE c.user.id = :userid")
-    Cart findByUserId(@Param("userid") long userid);
+    Cart findByUserId(@Param("userid") Integer userid);
 }

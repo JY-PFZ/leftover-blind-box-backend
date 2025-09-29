@@ -12,10 +12,10 @@ public class Cart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long cartId;
+    private Integer cartId;  
 
     @Column(name = "user_id", nullable = false)
-    private Integer userId;  // 只存用户ID，不直接关联 User 对象
+    private Integer userId;  
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -33,11 +33,11 @@ public class Cart {
 
     // Getter / Setter
 
-    public Long getCartId() {
+    public Integer getCartId() {
         return cartId;
     }
 
-    public void setCartId(Long cartId) {
+    public void setCartId(Integer cartId) {
         this.cartId = cartId;
     }
 
