@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Tag(name = "Auth API", description = "get public key, login, register...")
+@Tag(name = "Auth API", description = "Get rsa public key, login, activate account")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -87,6 +87,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @Operation(summary = "user logout", description = "Delete user's token on redis")
     public Result<String> logout(HttpServletRequest request) {
         String token = BaseUtil.getTokenFromRequest(request);
         if (token != null) {

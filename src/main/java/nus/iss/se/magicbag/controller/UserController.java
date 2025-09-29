@@ -1,6 +1,8 @@
 package nus.iss.se.magicbag.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import nus.iss.se.magicbag.auth.common.UserContext;
@@ -15,12 +17,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
+@Tag(name = "User API", description = "User service")
 public class UserController {
 
     private final IUserService userService;
     private final UserContextHolder userContextHolder;
 
     @GetMapping("/hello")
+    @Operation(summary = "ContextHolder test", description = "Test the user context holder whether can fetch the user info or not")
     public Result<String> hello(){
         UserContext currentUser = userContextHolder.getCurrentUser();
         return Result.success("hello spring security: " + currentUser.toString());
@@ -36,13 +40,15 @@ public class UserController {
         return Result.success(page);
     }
 
-    @PostMapping("/profile")
+    @PutMapping("/profile")
+    @Operation(summary = "Edit user info", description = "Edit user info,but not include password")
     public Result<Void> update(UserDto user){
         userService.updateUserInfo(user);
         return Result.success();
     }
 
     @PostMapping("/register")
+    @Operation(summary = "User register", description = "If user register, it's account will be create with inactive status. Then a activate link will send to user's email")
     public Result<String> register(@RequestBody @Valid RegisterReq req) {
         userService.register(req);
         return Result.success();
