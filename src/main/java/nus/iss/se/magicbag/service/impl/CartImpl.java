@@ -36,7 +36,7 @@ public class CartImpl implements CartInterface {
 	    @Override
 	    public Cart createCart(long userId) {
 	        Cart cart = new Cart();
-	        cart.setUser(userRepository.findById(userId).get());
+	        cart.setUserId(userRepository.findById(userId).get().getId());
 	        cart.setCreatedAt(LocalDateTime.now());
 	        cart.setUpdatedAt(LocalDateTime.now());
 	        return cartRepository.save(cart);
