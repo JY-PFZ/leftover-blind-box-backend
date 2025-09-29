@@ -2,14 +2,7 @@ package nus.iss.se.magicbag.entity;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "cart_items")
@@ -17,7 +10,7 @@ public class CartItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long cartItemId; 
+    private Long cartItemId;
 
     @ManyToOne
     @JoinColumn(name = "cart_id")
@@ -25,7 +18,7 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "magic_bag_id", nullable = false)
-    private MagicBag magicbag;
+    private MagicBag magicBag;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;
@@ -41,12 +34,13 @@ public class CartItem {
         this.status = "in_cart";
     }
 
-    public Long getItemId() {
+    // Getter / Setter
+    public Long getCartItemId() {
         return cartItemId;
     }
 
-    public void setItemId(Long itemId) {
-        this.cartItemId = itemId;
+    public void setCartItemId(Long cartItemId) {
+        this.cartItemId = cartItemId;
     }
 
     public Cart getCart() {
@@ -58,11 +52,11 @@ public class CartItem {
     }
 
     public MagicBag getMagicBag() {
-        return magicbag;
+        return magicBag;
     }
 
-    public void setMagicBag(MagicBag magicbag) {
-        this.magicbag = magicbag;
+    public void setMagicBag(MagicBag magicBag) {
+        this.magicBag = magicBag;
     }
 
     public int getQuantity() {
