@@ -143,7 +143,7 @@ public class MagicBag {
     }
 
     public void setActive(boolean active) {
-        isActive = active;
+        isActive = true;
     }
 
     public LocalDateTime getCreatedAt() {
