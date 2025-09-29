@@ -48,6 +48,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         User user = new User();
         user.setUsername(req.getUsername());
         user.setRole(req.getRole());
+        user.setStatus(UserStatus.INACTIVE.getCode());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
         this.save(user);
 
