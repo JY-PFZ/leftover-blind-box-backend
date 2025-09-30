@@ -5,9 +5,9 @@ import java.util.Date;
 
 @Data
 public class OrderVerificationDto {
-    private Long id;
-    private Long orderId;
-    private Long verifiedBy;
+    private Integer id;
+    private Integer orderId;
+    private Integer verifiedBy;
     private Date verifiedAt;
     private String location;
     private String verifierName;

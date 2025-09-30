@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class MerchantDto {
-    private Long id;
+    private Integer id;
     private String name;
     private String phone;
     private String address;
@@ -13,3 +13,5 @@ public class MerchantDto {
     private LocalDateTime createdAt;
     private LocalDateTime approvedAt;
 }
+
+
