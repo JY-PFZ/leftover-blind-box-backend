@@ -12,7 +12,7 @@ import java.util.List;
 public interface ProductMapper extends BaseMapper<Product> {
 
     @Select("SELECT * FROM products WHERE merchant_id = #{merchantId} AND is_active = 1")
-    List<Product> findByMerchantId(@Param("merchantId") Long merchantId);
+    List<Product> findByMerchantId(@Param("merchantId") Integer merchantId);
 
     @Select("SELECT * FROM products WHERE category = #{category} AND is_active = 1")
     List<Product> findByCategory(@Param("category") String category);
@@ -20,5 +20,7 @@ public interface ProductMapper extends BaseMapper<Product> {
     @Select("SELECT COUNT(*) FROM products WHERE is_active = 1")
     Long countActiveProducts();
 }
+
+
 
 

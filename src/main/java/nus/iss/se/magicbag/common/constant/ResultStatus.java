@@ -56,7 +56,14 @@ public enum ResultStatus {
 
     PERMISSION_TOKEN_INVALID(70006, "无效token"),
 
-    PERMISSION_SIGNATURE_ERROR(70007, "签名失败");
+    PERMISSION_SIGNATURE_ERROR(70007, "签名失败"),
+
+    /* 订单错误：80001-89999 */
+    ORDER_NOT_FOUND(80001, "订单不存在"),
+    ORDER_CANNOT_CANCEL(80002, "订单无法取消"),
+    ORDER_ALREADY_CANCELLED(80003, "订单已取消"),
+    ORDER_CANNOT_VERIFY(80004, "订单无法核销"),
+    ACCESS_DENIED(80005, "无权限访问");
 
     // 状态码
     private final int code;

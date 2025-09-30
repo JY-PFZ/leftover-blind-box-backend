@@ -15,7 +15,7 @@ public interface IProductService {
     /**
      * 根据ID获取商品详情
      */
-    ProductDto getProductById(Long id);
+    ProductDto getProductById(Integer id);
     
     /**
      * 根据分类获取商品
@@ -25,5 +25,7 @@ public interface IProductService {
     /**
      * 根据商家ID获取商品
      */
-    List<ProductDto> getProductsByMerchantId(Long merchantId);
+    List<ProductDto> getProductsByMerchantId(Integer merchantId);
 }
+
+

@@ -14,5 +14,7 @@ public interface IMerchantService {
     /**
      * 根据ID获取商家详情
      */
-    MerchantDto getMerchantById(Long id);
+    MerchantDto getMerchantById(Integer id);
 }
+
+

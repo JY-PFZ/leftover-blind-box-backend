@@ -26,7 +26,7 @@ public class MerchantServiceImpl implements IMerchantService {
     }
     
     @Override
-    public MerchantDto getMerchantById(Long id) {
+    public MerchantDto getMerchantById(Integer id) {
         Merchant merchant = merchantMapper.selectById(id);
         if (merchant == null) {
             return null;

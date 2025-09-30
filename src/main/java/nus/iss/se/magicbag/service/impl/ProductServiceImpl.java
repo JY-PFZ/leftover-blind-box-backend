@@ -43,7 +43,7 @@ public class ProductServiceImpl implements IProductService {
     }
     
     @Override
-    public ProductDto getProductById(Long id) {
+    public ProductDto getProductById(Integer id) {
         Product product = productMapper.selectById(id);
         if (product == null) {
             return null;
@@ -60,7 +60,7 @@ public class ProductServiceImpl implements IProductService {
     }
     
     @Override
-    public List<ProductDto> getProductsByMerchantId(Long merchantId) {
+    public List<ProductDto> getProductsByMerchantId(Integer merchantId) {
         List<Product> products = productMapper.findByMerchantId(merchantId);
         return products.stream()
                 .map(this::convertToDto)
