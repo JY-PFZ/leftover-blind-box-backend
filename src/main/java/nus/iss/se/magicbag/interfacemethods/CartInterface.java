@@ -2,19 +2,21 @@ package nus.iss.se.magicbag.interfacemethods;
 
 import java.util.List;
 
+import nus.iss.se.magicbag.dto.CartDto;
+import nus.iss.se.magicbag.dto.CartItemDto;
 import nus.iss.se.magicbag.entity.Cart;
 import nus.iss.se.magicbag.entity.CartItem;
 
 
 public interface CartInterface {
-    Cart createCart(Integer userId);
-    Cart getActiveCart(Integer userId);
-    Cart addItemToCart(Integer userId, Integer magicbagId, int quantity);
-    Cart updateItemQuantityInCart(Integer userId, Integer magicbagId, int newQuantity);
-    Cart removeItemFromCart(Integer userId, Integer magicbagId);
-    List<CartItem> getCartItems(Integer userId);
-    Cart clearCart(Integer userId);
+    CartDto createCart(Integer userId);
+    CartDto getActiveCart(Integer userId);
+    CartDto addItemToCart(Integer userId, Integer magicbagId, int quantity);
+    CartDto updateItemQuantityInCart(Integer userId, Integer magicbagId, int newQuantity);
+    CartDto removeItemFromCart(Integer userId, Integer magicbagId);
+    List<CartItemDto> getCartItems(Integer userId);
+    CartDto clearCart(Integer userId);
     double getTotal(Integer userId);
-    List<CartItem> getCartItemsByMagicBagId(Integer id);
+    List<CartItemDto> getCartItemsByMagicBagId(Integer id);
 }
 
