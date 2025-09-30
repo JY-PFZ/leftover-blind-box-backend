@@ -11,9 +11,9 @@ import java.time.LocalDateTime;
 @TableName("products")
 public class Product {
     @TableId
-    private Long id;
+    private Integer id;
     
-    private Long merchantId;
+    private Integer merchantId;
     private String name;
     private String description;
     private BigDecimal price;
@@ -24,3 +24,4 @@ public class Product {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
+

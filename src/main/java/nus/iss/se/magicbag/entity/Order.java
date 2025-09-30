@@ -11,10 +11,10 @@ import java.util.Date;
 @TableName("orders")
 public class Order {
     @TableId
-    private Long id;
+    private Integer id;
     private String orderNo;
-    private Long userId;
-    private Long bagId;
+    private Integer userId;
+    private Integer bagId;
     private Integer quantity;
     private BigDecimal totalPrice;
     private String status;
