@@ -6,10 +6,10 @@ import java.util.Date;
 
 @Data
 public class OrderDto {
-    private Long id;
+    private Integer id;
     private String orderNo;
-    private Long userId;
-    private Long bagId;
+    private Integer userId;
+    private Integer bagId;
     private Integer quantity;
     private BigDecimal totalPrice;
     private String status;

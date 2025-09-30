@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 
 @Data
 public class ProductDto {
-    private Long id;
-    private Long merchantId;
+    private Integer id;
+    private Integer merchantId;
     private String name;
     private String description;
     private BigDecimal price;
@@ -18,3 +18,5 @@ public class ProductDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
+
+

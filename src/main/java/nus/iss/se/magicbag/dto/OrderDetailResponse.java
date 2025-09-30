@@ -13,7 +13,7 @@ public class OrderDetailResponse {
     
     @Data
     public static class MagicBagInfo {
-        private Long id;
+        private Integer id;
         private String title;
         private String description;
         private String category;
@@ -22,14 +22,14 @@ public class OrderDetailResponse {
     
     @Data
     public static class UserInfo {
-        private Long id;
+        private Integer id;
         private String nickname;
         private String phone;
     }
     
     @Data
     public static class MerchantInfo {
-        private Long id;
+        private Integer id;
         private String name;
         private String phone;
         private String address;
