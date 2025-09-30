@@ -32,7 +32,7 @@ public class ProductController {
      * 根据ID获取商品详情
      */
     @GetMapping("/{id}")
-    public Result<ProductDto> getProductById(@PathVariable Long id) {
+    public Result<ProductDto> getProductById(@PathVariable Integer id) {
         ProductDto product = productService.getProductById(id);
         if (product == null) {
             return Result.error("商品不存在");
@@ -53,8 +53,10 @@ public class ProductController {
      * 根据商家ID获取商品
      */
     @GetMapping("/merchant/{merchantId}")
-    public Result<List<ProductDto>> getProductsByMerchantId(@PathVariable Long merchantId) {
+    public Result<List<ProductDto>> getProductsByMerchantId(@PathVariable Integer merchantId) {
         List<ProductDto> products = productService.getProductsByMerchantId(merchantId);
         return Result.success(products);
     }
 }
+
+

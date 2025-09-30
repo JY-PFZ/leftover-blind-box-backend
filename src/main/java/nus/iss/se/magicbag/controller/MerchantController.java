@@ -29,7 +29,7 @@ public class MerchantController {
      * 根据ID获取商家详情
      */
     @GetMapping("/{id}")
-    public Result<MerchantDto> getMerchantById(@PathVariable Long id) {
+    public Result<MerchantDto> getMerchantById(@PathVariable Integer id) {
         MerchantDto merchant = merchantService.getMerchantById(id);
         if (merchant == null) {
             return Result.error("商家不存在");
@@ -37,3 +37,5 @@ public class MerchantController {
         return Result.success(merchant);
     }
 }
+
+

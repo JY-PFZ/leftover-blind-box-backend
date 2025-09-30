@@ -26,3 +26,5 @@ INSERT INTO `products` (`merchant_id`, `name`, `description`, `price`, `stock`, 
 (1, 'Choco 2', 'Milk chocolate bar.', 7.49, 50, 'Chocolate', NULL, 1),
 (1, 'Fruit Snack 1', 'Dried mango.', 5.99, 80, 'Fruit', NULL, 1),
 (1, 'Fruit Snack 2', 'Dried strawberry.', 5.49, 80, 'Fruit', NULL, 1);
+
+
