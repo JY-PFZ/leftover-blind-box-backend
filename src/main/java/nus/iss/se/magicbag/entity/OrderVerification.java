@@ -10,9 +10,9 @@ import java.util.Date;
 @TableName("order_verifications")
 public class OrderVerification {
     @TableId
-    private Long id;
-    private Long orderId;
-    private Long verifiedBy;
+    private Integer id;
+    private Integer orderId;
+    private Integer verifiedBy;
     private Date verifiedAt;
     private String location;
 }

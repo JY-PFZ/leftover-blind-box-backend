@@ -4,23 +4,23 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.util.Date;
 
 @Data
 @TableName("merchants")
 public class Merchant {
     @TableId
-    private Long id;
-    
+    private Integer id;
     private String name;
     private String phone;
     private String passwordHash;
     private String businessLicense;
     private String address;
-    private String latitude;
-    private String longitude;
-    private String status; // pending, approved, rejected
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime approvedAt;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
+    private String status;
+    private Date createdAt;
+    private Date updatedAt;
+    private Date approvedAt;
 }
