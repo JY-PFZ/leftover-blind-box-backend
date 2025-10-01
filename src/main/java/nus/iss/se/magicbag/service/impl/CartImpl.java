@@ -1,21 +1,21 @@
 package nus.iss.se.magicbag.service.impl;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.NoSuchElementException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import nus.iss.se.magicbag.dto.CartDto;
-import nus.iss.se.magicbag.dto.CartItemDto;
 import nus.iss.se.magicbag.entity.Cart;
 import nus.iss.se.magicbag.entity.CartItem;
 import nus.iss.se.magicbag.entity.MagicBag;
+import nus.iss.se.magicbag.dto.CartDto;
+import nus.iss.se.magicbag.dto.CartItemDto;
 import nus.iss.se.magicbag.interfacemethods.CartInterface;
-import nus.iss.se.magicbag.mapper.CartItemMapper;
 import nus.iss.se.magicbag.mapper.CartMapper;
+import nus.iss.se.magicbag.mapper.CartItemMapper;
 import nus.iss.se.magicbag.mapper.MagicBagMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Service
 public class CartImpl implements CartInterface {
@@ -33,140 +33,155 @@ public class CartImpl implements CartInterface {
     public CartDto createCart(Integer userId) {
         Cart cart = new Cart();
         cart.setUserId(userId);
-        cart.setCreatedAt(LocalDateTime.now());
-        cart.setUpdatedAt(LocalDateTime.now());
         cartMapper.insertCart(cart);
-        return convertToCartDTO(cart);
+        return convertToCartDto(cart);
     }
 
     @Override
     public CartDto getActiveCart(Integer userId) {
         Cart cart = cartMapper.findByUserId(userId);
-        return convertToCartDTO(cart);
+        if (cart != null) {
+            cart.setCartItems(cartItemMapper.findByCartId(cart.getCartId()));
+        }
+        return convertToCartDto(cart);
     }
 
     @Override
-    public CartDto addItemToCart(Integer userId, Integer magicbagId, int quantity) {
+    public CartDto addItemToCart(Integer userId, Integer magicBagId, int quantity) {
         Cart cart = cartMapper.findByUserId(userId);
-        CartItem existing = cartItemMapper.findByCartIdAndMagicBagId(cart.getCartId(), magicbagId);
-        MagicBag magicBag = magicBagMapper.selectById(magicbagId);
+        if (cart == null) {
+            cart = new Cart();
+            cart.setUserId(userId);
+            cartMapper.insertCart(cart);
+        }
+
+        CartItem existing = cartItemMapper.findByCartIdAndMagicBagId(cart.getCartId(), magicBagId);
+        MagicBag bag = magicBagMapper.selectById(magicBagId);
 
         if (existing != null) {
             existing.setQuantity(existing.getQuantity() + quantity);
             existing.setAddedAt(LocalDateTime.now());
             cartItemMapper.updateCartItem(existing);
         } else {
-            CartItem cartItem = new CartItem();
-            cartItem.setCart(cart);
-            cartItem.setMagicBag(magicBag);
-            cartItem.setQuantity(quantity);
-            cartItem.setAddedAt(LocalDateTime.now());
-            cartItemMapper.insertCartItem(cartItem);
+            CartItem item = new CartItem();
+            item.setCartId(cart.getCartId());
+            item.setMagicBagId(magicBagId);
+            item.setQuantity(quantity);
+            item.setAddedAt(LocalDateTime.now());
+            cartItemMapper.insertCartItem(item);
         }
 
         cart.setUpdatedAt(LocalDateTime.now());
         cartMapper.updateCart(cart);
-        return convertToCartDTO(cart);
+
+        cart.setCartItems(cartItemMapper.findByCartId(cart.getCartId()));
+        return convertToCartDto(cart);
     }
 
     @Override
-    public CartDto updateItemQuantityInCart(Integer userId, Integer magicbagId, int newQuantity) {
+    public CartDto updateItemQuantityInCart(Integer userId, Integer magicBagId, int newQuantity) {
+        if (newQuantity < 0) throw new IllegalArgumentException("Quantity cannot be less than zero.");
+
         Cart cart = cartMapper.findByUserId(userId);
-        CartItem existing = cartItemMapper.findByCartIdAndMagicBagId(cart.getCartId(), magicbagId);
+        if (cart == null) throw new NoSuchElementException("Cart not found");
 
-        if (existing == null) {
-            throw new NoSuchElementException("CartItem not found for magicBagId: " + magicbagId);
-        }
-
-        if (newQuantity < 0) {
-            throw new IllegalArgumentException("Quantity cannot be less than zero");
-        }
+        CartItem item = cartItemMapper.findByCartIdAndMagicBagId(cart.getCartId(), magicBagId);
+        if (item == null) throw new NoSuchElementException("CartItem not found");
 
         if (newQuantity == 0) {
-            cartItemMapper.deleteCartItem(existing.getCartItemId());
+            cartItemMapper.deleteCartItem(item.getCartItemId());
         } else {
-            existing.setQuantity(newQuantity);
-            existing.setAddedAt(LocalDateTime.now());
-            cartItemMapper.updateCartItem(existing);
+            item.setQuantity(newQuantity);
+            item.setAddedAt(LocalDateTime.now());
+            cartItemMapper.updateCartItem(item);
         }
 
         cart.setUpdatedAt(LocalDateTime.now());
         cartMapper.updateCart(cart);
-        return convertToCartDTO(cart);
+
+        cart.setCartItems(cartItemMapper.findByCartId(cart.getCartId()));
+        return convertToCartDto(cart);
     }
 
     @Override
-    public CartDto removeItemFromCart(Integer userId, Integer magicbagId) {
+    public CartDto removeItemFromCart(Integer userId, Integer magicBagId) {
         Cart cart = cartMapper.findByUserId(userId);
-        CartItem existing = cartItemMapper.findByCartIdAndMagicBagId(cart.getCartId(), magicbagId);
+        if (cart == null) throw new NoSuchElementException("Cart not found");
 
-        if (existing != null) {
-            cartItemMapper.deleteCartItem(existing.getCartItemId());
+        CartItem item = cartItemMapper.findByCartIdAndMagicBagId(cart.getCartId(), magicBagId);
+        if (item != null) {
+            cartItemMapper.deleteCartItem(item.getCartItemId());
         }
 
         cart.setUpdatedAt(LocalDateTime.now());
         cartMapper.updateCart(cart);
-        return convertToCartDTO(cart);
+
+        cart.setCartItems(cartItemMapper.findByCartId(cart.getCartId()));
+        return convertToCartDto(cart);
     }
 
     @Override
     public List<CartItemDto> getCartItems(Integer userId) {
         Cart cart = cartMapper.findByUserId(userId);
+        if (cart == null) return List.of();
+
         List<CartItem> items = cartItemMapper.findByCartId(cart.getCartId());
-        return items.stream()
-                .map(item -> new CartItemDto(
-                        item.getCartItemId(),
-                        item.getMagicBag().getTitle(),
-                        item.getMagicBag().getPrice(),
-                        item.getQuantity(),
-                        item.getMagicBag().getPrice() * item.getQuantity()
-                ))
-                .toList();
+        return items.stream().map(item -> {
+            MagicBag bag = magicBagMapper.selectById(item.getMagicBagId());
+            double subtotal = bag.getPrice() * item.getQuantity();
+            return new CartItemDto(item.getCartItemId(), bag.getTitle(), bag.getPrice(), item.getQuantity(), subtotal);
+        }).collect(Collectors.toList());
     }
 
     @Override
     public CartDto clearCart(Integer userId) {
         Cart cart = cartMapper.findByUserId(userId);
-        cartItemMapper.deleteByCartId(cart.getCartId());
-        cart.setUpdatedAt(LocalDateTime.now());
-        cartMapper.updateCart(cart);
-        return convertToCartDTO(cart);
+        if (cart != null) {
+            cartItemMapper.deleteByCartId(cart.getCartId());
+            cart.setUpdatedAt(LocalDateTime.now());
+            cartMapper.updateCart(cart);
+            cart.setCartItems(List.of());
+        }
+        return convertToCartDto(cart);
     }
 
     @Override
     public double getTotal(Integer userId) {
         Cart cart = cartMapper.findByUserId(userId);
+        if (cart == null) return 0.0;
+
         List<CartItem> items = cartItemMapper.findByCartId(cart.getCartId());
-        return items.stream().mapToDouble(item -> item.getMagicBag().getPrice() * item.getQuantity()).sum();
+        return items.stream()
+                .mapToDouble(item -> magicBagMapper.selectById(item.getMagicBagId()).getPrice() * item.getQuantity())
+                .sum();
     }
 
     @Override
-    public List<CartItemDto> getCartItemsByMagicBagId(Integer magicbagId) {
-        List<CartItem> items = cartItemMapper.findCartItemsByMagicBagId(magicbagId);
-        return items.stream()
-                .map(item -> new CartItemDto(
-                        item.getCartItemId(),
-                        item.getMagicBag().getTitle(),
-                        item.getMagicBag().getPrice(),
-                        item.getQuantity(),
-                        item.getMagicBag().getPrice() * item.getQuantity()
-                ))
-                .toList();
+    public List<CartItemDto> getCartItemsByMagicBagId(Integer magicBagId) {
+        List<CartItem> items = cartItemMapper.findByMagicBagId(magicBagId);
+        
+        MagicBag bag = magicBagMapper.selectById(magicBagId);
+        
+        return items.stream().map(item -> {
+            double subtotal = bag.getPrice() * item.getQuantity();
+            return new CartItemDto(
+                item.getCartItemId(), 
+                bag.getTitle(), 
+                bag.getPrice(), 
+                item.getQuantity(), 
+                subtotal
+            );
+        }).collect(Collectors.toList());
     }
 
-    private CartDto convertToCartDTO(Cart cart) {
-        List<CartItem> items = cartItemMapper.findByCartId(cart.getCartId());
-        List<CartItemDto> itemDTOs = items.stream()
-                .map(item -> new CartItemDto(
-                        item.getCartItemId(),
-                        item.getMagicBag().getTitle(),
-                        item.getMagicBag().getPrice(),
-                        item.getQuantity(),
-                        item.getMagicBag().getPrice() * item.getQuantity()
-                ))
-                .toList();
-
-        double total = itemDTOs.stream().mapToDouble(CartItemDto::getSubtotal).sum();
-        return new CartDto(cart.getCartId(), cart.getUserId(), itemDTOs, total);
+    private CartDto convertToCartDto(Cart cart) {
+        if (cart == null) return null;
+        List<CartItemDto> items = cart.getCartItems().stream().map(item -> {
+            MagicBag bag = magicBagMapper.selectById(item.getMagicBagId());
+            double subtotal = bag.getPrice() * item.getQuantity();
+            return new CartItemDto(item.getCartItemId(), bag.getTitle(), bag.getPrice(), item.getQuantity(), subtotal);
+        }).collect(Collectors.toList());
+        double total = items.stream().mapToDouble(CartItemDto::getSubtotal).sum();
+        return new CartDto(cart.getCartId(), cart.getUserId(), items, total);
     }
 }

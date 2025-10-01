@@ -57,7 +57,7 @@ public class PaymentService {
         initStripe();
         PaymentResponseDto response = new PaymentResponseDto();
 
-        // MyBatis 查询
+        // MyBatis 查询 Order
         Order order = orderMapper.selectById(orderId);
         if (order == null || order.getTotalPrice() == null || order.getQuantity() == null) {
             response.setSuccess(false);
@@ -114,7 +114,7 @@ public class PaymentService {
     }
 
     /**
-     * 转换 Order -> OrderDto
+     * Order -> OrderDto
      */
     public OrderDto convertToDto(Order order) {
         if (order == null) return null;
@@ -140,7 +140,7 @@ public class PaymentService {
             MagicBag bag = magicBagMapper.selectById(order.getBagId());
             if (bag != null) {
                 dto.setBagTitle(bag.getTitle());
-                // 查询商户信息
+                // 查询商户
                 if (bag.getMerchantId() != null) {
                     Merchant merchant = merchantMapper.selectById(bag.getMerchantId());
                     if (merchant != null) {
@@ -150,7 +150,7 @@ public class PaymentService {
             }
         }
 
-        // 查询用户信息
+        // 查询用户
         if (order.getUserId() != null) {
             User user = userMapper.selectById(order.getUserId());
             if (user != null) {
