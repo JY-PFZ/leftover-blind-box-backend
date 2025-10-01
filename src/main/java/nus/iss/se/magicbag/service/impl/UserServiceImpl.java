@@ -23,6 +23,10 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import java.util.Date;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -86,6 +90,58 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 .set(User::getStatus, UserStatus.ACTIVE.getCode());
 
         update(wrapper);
+    }
+
+    @Override
+    @CacheEvict(value = "users", key = "#currentUser.username")
+    public void updateUserInfo(UserDto dto, UserContext currentUser) {
+        // 1. 权限验证：确保只能修改自己的信息
+        if (!Objects.equals(currentUser.getId(), dto.getId())) {
+            throw new BusinessException(ResultStatus.ACCESS_DENIED, "无权限修改他人信息");
+        }
+        
+        // 2. 角色验证：确保是有效角色
+        String userRole = currentUser.getRole();
+        if (!"USER".equals(userRole) && !"MERCHANT".equals(userRole)) {
+            throw new BusinessException(ResultStatus.ACCESS_DENIED, "角色权限不足");
+        }
+        
+        // 3. 手机号唯一性验证（如果更新了手机号）
+        if (StringUtils.hasText(dto.getPhone())) {
+            User existingUser = baseMapper.selectByPhone(dto.getPhone());
+            if (existingUser != null && !Objects.equals(existingUser.getId(), dto.getId())) {
+                throw new BusinessException(ResultStatus.USER_HAS_EXISTED, "手机号已被其他用户使用");
+            }
+        }
+        
+        // 4. 更新用户信息
+        LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(User::getId, dto.getId());
+        
+        if (StringUtils.hasText(dto.getNickname())) {
+            wrapper.set(User::getNickname, dto.getNickname());
+        }
+        if (StringUtils.hasText(dto.getAvatar())) {
+            wrapper.set(User::getAvatar, dto.getAvatar());
+        }
+        if (StringUtils.hasText(dto.getPhone())) {
+            wrapper.set(User::getPhone, dto.getPhone());
+        }
+        
+        wrapper.set(User::getUpdatedAt, new Date());
+        
+        boolean updated = update(wrapper);
+        if (!updated) {
+            throw new BusinessException(ResultStatus.FAIL, "用户信息更新失败");
+        }
+        
+        // 5. 更新缓存
+        User updatedUser = baseMapper.selectById(dto.getId());
+        UserContext userContext = new UserContext();
+        BeanUtils.copyProperties(updatedUser, userContext);
+        userCacheService.updateCache(userContext);
+
+        log.info("用户 {} 更新个人信息成功", currentUser.getUsername());
     }
 
     @Override
