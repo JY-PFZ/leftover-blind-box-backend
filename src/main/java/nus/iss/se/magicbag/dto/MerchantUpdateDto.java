@@ -33,9 +33,6 @@ public class MerchantUpdateDto {
     @Schema(description = "餐馆图片URL", example = "https://example.com/restaurant.jpg")
     private String businessLicense;
     
-    @Schema(description = "餐馆图片文件（上传时使用）", hidden = true)
-    private transient Object businessLicenseFile;
-    
     @Schema(description = "纬度", example = "39.9042")
     private BigDecimal latitude;
     
