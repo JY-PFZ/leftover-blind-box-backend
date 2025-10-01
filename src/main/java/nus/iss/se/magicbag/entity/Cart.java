@@ -4,34 +4,18 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.*;
-
-@Entity
-@Table(name = "carts")
 public class Cart {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer cartId;  
-
-    @Column(name = "user_id", nullable = false)
-    private Integer userId;  
-
-    @Column(name = "created_at", nullable = false)
+    private Integer cartId;
+    private Integer userId;
     private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> cartItems = new ArrayList<>();
 
     public Cart() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
-
-    // Getter / Setter
 
     public Integer getCartId() {
         return cartId;

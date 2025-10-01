@@ -2,39 +2,20 @@ package nus.iss.se.magicbag.entity;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.*;
-
-@Entity
-@Table(name = "cart_items")
 public class CartItem {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer cartItemId;  
-
-    @ManyToOne
-    @JoinColumn(name = "cart_id")
+    private Integer cartItemId;
     private Cart cart;
-
-    @ManyToOne
-    @JoinColumn(name = "magic_bag_id", nullable = false)
     private MagicBag magicBag;
-
-    @Column(name = "quantity", nullable = false)
     private int quantity;
-
-    @Column(name = "added_at", nullable = false)
     private LocalDateTime addedAt;
-
-    @Column(name = "status", nullable = false)
-    private String status; // in_cart / purchased
+    private String status;
 
     public CartItem() {
         this.addedAt = LocalDateTime.now();
         this.status = "in_cart";
     }
 
-    // Getter / Setter
     public Integer getCartItemId() {
         return cartItemId;
     }

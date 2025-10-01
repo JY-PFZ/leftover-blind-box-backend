@@ -1,54 +1,25 @@
 package nus.iss.se.magicbag.entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
 
-@Entity
-@Table(name = "magic_bags")
 public class MagicBag {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @Column(name = "merchant_id")
     private Integer merchantId;
-
     private String title;
-
     private String description;
-
     private float price;
-
     private Integer quantity;
-
-    @Column(name = "pickup_start_time")
     private LocalTime pickupStartTime;
-
-    @Column(name = "pickup_end_time")
     private LocalTime pickupEndTime;
-
-    @Column(name = "available_date")
-    @Temporal(TemporalType.DATE)
     private Date availableDate;
-
     private String category;
-
-    @Column(name = "image_url")
     private String imageUrl;
-
-    @Column(name = "is_active")
     private boolean isActive;
-
-    @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    // Getters and Setters
 
     public Integer getId() {
         return id;
@@ -143,7 +114,7 @@ public class MagicBag {
     }
 
     public void setActive(boolean active) {
-        isActive = true;
+        this.isActive = active;
     }
 
     public LocalDateTime getCreatedAt() {

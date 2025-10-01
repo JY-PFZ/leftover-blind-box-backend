@@ -42,4 +42,17 @@ public class PaymentController {
             return response;
         }
     }
+    @GetMapping("/success")
+    @Operation(summary = "Payment success callback", description = "Handle the successful payment callback")
+    public PaymentResponseDto paymentSuccess(@RequestParam Integer orderId) {
+        // TODO: You can update order status to 'PAID' here if needed
+        return new PaymentResponseDto(true,null, "Payment successful for orderId: " + orderId);
+    }
+
+    @GetMapping("/cancel")
+    @Operation(summary = "Payment cancel callback", description = "Handle the payment cancellation callback")
+    public PaymentResponseDto paymentCancel(@RequestParam Integer orderId) {
+        // TODO: You can update order status to 'CANCELLED' here if needed
+        return new PaymentResponseDto(false,null, "Payment cancelled for orderId: " + orderId);
+    }
 }
