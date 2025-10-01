@@ -28,3 +28,4 @@ INSERT INTO `products` (`merchant_id`, `name`, `description`, `price`, `stock`, 
 (1, 'Fruit Snack 2', 'Dried strawberry.', 5.49, 80, 'Fruit', NULL, 1);
 
 
+
