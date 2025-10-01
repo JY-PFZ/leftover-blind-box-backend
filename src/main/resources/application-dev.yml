@@ -15,7 +15,6 @@ spring:
       port: 37325
       password: kSBzZtCxzRzBKEsejmNMmsQREiWvLthk
       connect-timeout: 5s
-
       lettuce:
         pool:
           max-active: 8
@@ -50,3 +49,12 @@ common:
     boot: false
     public-key-path: .keys/public-key.pem
     private-key-path: .keys/private-key.pem
+
+# ---------- URL 配置 ----------
+app:
+  pay-url: http://localhost:10016
+
+# ---------- Stripe 配置 ----------
+stripe:
+  api:
+    key: sk_test_51QkKIAFx9r3W1cEdHhvIXcgV4oTkl7KlnA7vLuFDttGigZxNaTiiw4VR7nWFCQxssdTnzjgX2376tBdYNx9UniYJ00GwesjEGB
