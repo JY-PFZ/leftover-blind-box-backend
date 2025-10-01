@@ -42,8 +42,18 @@ public class UserController {
 
     @PutMapping("/profile")
     @Operation(summary = "Edit user info", description = "Edit user info,but not include password")
-    public Result<Void> update(UserDto user){
-        userService.updateUserInfo(user);
+    public Result<Void> update(@RequestBody @Valid UserDto userDto) {
+        UserContext currentUser = userContextHolder.getCurrentUser();
+        
+        // 如果前端没有传递ID，使用当前用户ID
+        if (userDto.getId() == null) {
+            userDto.setId(currentUser.getId());
+        }
+        
+        // 设置用户名（从当前用户上下文获取）
+        userDto.setUsername(currentUser.getUsername());
+        
+        userService.updateUserInfo(userDto, currentUser);
         return Result.success();
     }
 
