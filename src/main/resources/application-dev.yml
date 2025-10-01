@@ -2,6 +2,12 @@ server:
   port: 10016
 
 spring:
+  # ========== 禁用 JPA 自动配置 ==========
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
+
   # 数据库配置 - MySQL
   datasource:
     url: jdbc:mysql://nozomi.proxy.rlwy.net:26543/railway?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
@@ -39,6 +45,9 @@ spring:
           timeout: 5000
           writetimeout: 5000
 
+  application:
+    name: leftover-blind-box-backend
+
 # ---------- JWT 配置 ----------
 common:
   jwt:
@@ -58,3 +67,24 @@ app:
 stripe:
   api:
     key: sk_test_51QkKIAFx9r3W1cEdHhvIXcgV4oTkl7KlnA7vLuFDttGigZxNaTiiw4VR7nWFCQxssdTnzjgX2376tBdYNx9UniYJ00GwesjEGB
+
+# ---------- MyBatis-Plus 配置 ----------
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+# ---------- SpringDoc 配置 ----------
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  group-configs:
+    - group: 'public-api'
+      paths-to-match: '/api/**'
+      packages-to-scan: nus.iss.se.magicbag.controller

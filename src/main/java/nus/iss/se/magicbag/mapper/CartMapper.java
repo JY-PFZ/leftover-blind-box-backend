@@ -13,6 +13,6 @@ public interface CartMapper {
     @Update("UPDATE carts SET updated_at = #{updatedAt} WHERE cart_id = #{cartId}")
     void updateCart(Cart cart);
 
-    @Select("SELECT * FROM carts WHERE user_id = #{userId}")
+    @Select("SELECT * FROM carts WHERE user_id = #{userId} LIMIT 1")
     Cart findByUserId(@Param("userId") Integer userId);
 }
