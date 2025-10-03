@@ -4,6 +4,9 @@ import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.dto.OrderDto;
 import nus.iss.se.magicbag.dto.PaymentResponseDto;
 import nus.iss.se.magicbag.entity.MagicBag;
@@ -17,23 +20,20 @@ import nus.iss.se.magicbag.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class PaymentService {
 
-    @Autowired
-    private OrderMapper orderMapper;
-
-    @Autowired
-    private MagicBagMapper magicBagMapper;
-
-    @Autowired
-    private UserMapper userMapper;
-
-    @Autowired
-    private MerchantMapper merchantMapper;
+    private final OrderMapper orderMapper;
+    private final MagicBagMapper magicBagMapper;
+    private final UserMapper userMapper;
+    private final MerchantMapper merchantMapper;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -64,6 +64,13 @@ public class PaymentService {
             return response;
         }
 
+        // ⚠️ 检查订单状态
+        if ("paid".equals(order.getStatus())) {
+            response.setSuccess(false);
+            response.setMessage("Order already paid");
+            return response;
+        }
+
         BigDecimal totalPrice = order.getTotalPrice();
         if (totalPrice.compareTo(BigDecimal.ZERO) <= 0) {
             response.setSuccess(false);
@@ -73,7 +80,6 @@ public class PaymentService {
 
         long amountInCents = totalPrice.multiply(BigDecimal.valueOf(100)).longValue();
 
-        // 获取 Bag 名称
         String bagTitle = "Magic Bag";
         if (order.getBagId() != null) {
             MagicBag bag = magicBagMapper.selectById(order.getBagId());
@@ -82,10 +88,9 @@ public class PaymentService {
             }
         }
 
-        // 创建 Stripe Session
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl(payUrl + "/payment/success?orderId=" + orderId)
+                .setSuccessUrl(payUrl + "/payment/success?orderId=" + orderId + "&session_id={CHECKOUT_SESSION_ID}")
                 .setCancelUrl(payUrl + "/payment/cancel?orderId=" + orderId)
                 .addLineItem(SessionCreateParams.LineItem.builder()
                         .setQuantity(order.getQuantity().longValue())
@@ -98,12 +103,17 @@ public class PaymentService {
                                 .build())
                         .build())
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+                // 添加 metadata,方便后续验证
+                .putMetadata("orderId", orderId.toString())
+                .putMetadata("orderNo", order.getOrderNo())
                 .build();
 
         Session session = Session.create(params);
         if (session != null && session.getUrl() != null) {
             response.setSuccess(true);
             response.setCheckoutUrl(session.getUrl());
+            response.setMessage("Checkout session created");
+            log.info("Created checkout session for order {}: {}", orderId, session.getId());
         } else {
             response.setSuccess(false);
             response.setMessage("Failed to create Stripe session");
@@ -113,9 +123,81 @@ public class PaymentService {
     }
 
     /**
-     * 转换 Order -> OrderDto
+     * 验证支付状态并更新订单
+     * 简化版:从 Stripe 查询 session 状态来验证
+     */
+    @Transactional
+    public PaymentResponseDto verifyAndUpdatePayment(Integer orderId, String sessionId) {
+        initStripe();
+        PaymentResponseDto response = new PaymentResponseDto();
+
+        try {
+            Order order = orderMapper.selectById(orderId);
+            if (order == null) {
+                response.setSuccess(false);
+                response.setMessage("Order not found");
+                return response;
+            }
+
+            // 如果已经支付过了,直接返回
+            if ("paid".equals(order.getStatus())) {
+                response.setSuccess(true);
+                response.setMessage("Order already paid");
+                return response;
+            }
+
+            // ⚠️ 关键:从 Stripe 服务器验证支付状态
+            if (sessionId != null && !sessionId.isEmpty()) {
+                Session session = Session.retrieve(sessionId);
+                
+                // 验证 orderId 是否匹配
+                String metadataOrderId = session.getMetadata().get("orderId");
+                if (!orderId.toString().equals(metadataOrderId)) {
+                    response.setSuccess(false);
+                    response.setMessage("Order ID mismatch");
+                    log.warn("Order ID mismatch: expected {}, got {}", orderId, metadataOrderId);
+                    return response;
+                }
+
+                // 验证支付状态
+                if ("complete".equals(session.getStatus()) && "paid".equals(session.getPaymentStatus())) {
+                    // 更新订单状态
+                    order.setStatus("paid");
+                    order.setPaidAt(new Date());
+                    order.setUpdatedAt(new Date());
+                    orderMapper.updateById(order);
+
+                    response.setSuccess(true);
+                    response.setMessage("Payment verified and order updated");
+                    log.info("Order {} payment verified and updated", orderId);
+                } else {
+                    response.setSuccess(false);
+                    response.setMessage("Payment not completed. Session status: " + session.getStatus());
+                    log.warn("Payment not completed for order {}: {}", orderId, session.getStatus());
+                }
+            } else {
+                response.setSuccess(false);
+                response.setMessage("Session ID is required");
+            }
+
+        } catch (StripeException e) {
+            response.setSuccess(false);
+            response.setMessage("Stripe error: " + e.getMessage());
+            log.error("Stripe error when verifying payment for order {}: {}", orderId, e.getMessage());
+        } catch (Exception e) {
+            response.setSuccess(false);
+            response.setMessage("Error: " + e.getMessage());
+            log.error("Error when verifying payment for order {}: {}", orderId, e.getMessage());
+        }
+
+        return response;
+    }
+    /**
+     * Order -> OrderDto
      */
     public OrderDto convertToDto(Order order) {
+        if (order == null) return null;
+
         OrderDto dto = new OrderDto();
         dto.setId(order.getId());
         dto.setOrderNo(order.getOrderNo());
@@ -132,10 +214,12 @@ public class PaymentService {
         dto.setCompletedAt(order.getCompletedAt());
         dto.setCancelledAt(order.getCancelledAt());
 
+        // MyBatis 查询 MagicBag
         if (order.getBagId() != null) {
             MagicBag bag = magicBagMapper.selectById(order.getBagId());
             if (bag != null) {
                 dto.setBagTitle(bag.getTitle());
+                // 查询商户
                 if (bag.getMerchantId() != null) {
                     Merchant merchant = merchantMapper.selectById(bag.getMerchantId());
                     if (merchant != null) {
@@ -145,6 +229,7 @@ public class PaymentService {
             }
         }
 
+        // 查询用户
         if (order.getUserId() != null) {
             User user = userMapper.selectById(order.getUserId());
             if (user != null) {

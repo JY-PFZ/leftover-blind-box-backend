@@ -18,6 +18,7 @@ import nus.iss.se.magicbag.common.constant.RedisPrefix;
 import nus.iss.se.magicbag.common.constant.ResultStatus;
 import nus.iss.se.magicbag.dto.LoginReq;
 import nus.iss.se.magicbag.common.Result;
+import nus.iss.se.magicbag.entity.User;
 import nus.iss.se.magicbag.service.EmailService;
 import nus.iss.se.magicbag.service.IUserService;
 import nus.iss.se.magicbag.util.BaseUtil;
@@ -29,6 +30,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestController
