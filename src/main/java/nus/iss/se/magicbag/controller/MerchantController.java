@@ -72,7 +72,7 @@ public class MerchantController {
         return Result.success(nearbyMerchants);
     }
 
-    @GetMapping("/nearby")
+    @GetMapping("/sorted-by-score")
     @Operation(summary = "根据评分排序商铺", description = "根据评分排序商铺")
     public Result<IPage<MerchantDto>> sortedByScore(@RequestParam(defaultValue = "1", name = "current") Integer current, @RequestParam(defaultValue = "10", name = "size") Integer size, @RequestParam(defaultValue = "0", name = "minScore")Integer minScore){
         IPage<MerchantDto> listByScore = merchantService.sortedMerchantsByScore(current,size, minScore);

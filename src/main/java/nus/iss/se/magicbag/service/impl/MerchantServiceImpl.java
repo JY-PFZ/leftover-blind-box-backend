@@ -3,7 +3,6 @@ package nus.iss.se.magicbag.service.impl;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.auth.common.UserContext;
 import nus.iss.se.magicbag.dto.MerchantDto;
@@ -16,6 +15,7 @@ import nus.iss.se.magicbag.service.IMerchantService;
 import nus.iss.se.magicbag.common.exception.BusinessException;
 import nus.iss.se.magicbag.common.constant.ResultStatus;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -27,12 +27,21 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class MerchantServiceImpl implements IMerchantService {
     
     private final MerchantMapper merchantMapper;
     private final UserMapper userMapper;
     private final BaseMapper baseMapper;
+    
+    public MerchantServiceImpl(
+        MerchantMapper merchantMapper,
+        UserMapper userMapper,
+        @Qualifier("merchantMapper") BaseMapper baseMapper
+    ) {
+        this.merchantMapper = merchantMapper;
+        this.userMapper = userMapper;
+        this.baseMapper = baseMapper;
+    }
 
     @Override
     public List<MerchantDto> getAllMerchants() {
