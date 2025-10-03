@@ -11,9 +11,15 @@ import java.util.List;
 @Mapper
 public interface MagicBagMapper extends BaseMapper<MagicBag> {
     
-    @Select("SELECT * FROM magic_bags WHERE merchant_id = #{merchantId}")
+    @Select("SELECT * FROM magic_bags WHERE merchant_id = #{merchantId} AND is_active = 1")
     List<MagicBag> findByMerchantId(@Param("merchantId") Integer merchantId);
     
     @Select("SELECT * FROM magic_bags WHERE id = #{id}")
     MagicBag selectById(@Param("id") Integer id);
+    
+    @Select("SELECT * FROM magic_bags WHERE category = #{category} AND is_active = 1")
+    List<MagicBag> findByCategory(@Param("category") String category);
+    
+    @Select("SELECT COUNT(*) FROM magic_bags WHERE is_active = 1")
+    Long countActiveMagicBags();
 }

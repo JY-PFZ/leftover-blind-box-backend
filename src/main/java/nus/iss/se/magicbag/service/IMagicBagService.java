@@ -1,0 +1,29 @@
+package nus.iss.se.magicbag.service;
+
+import nus.iss.se.magicbag.dto.MagicBagDto;
+import nus.iss.se.magicbag.dto.MagicBagListResponse;
+
+import java.util.List;
+
+public interface IMagicBagService {
+    
+    /**
+     * 获取所有盲盒列表（分页）
+     */
+    MagicBagListResponse getAllMagicBags(Integer page, Integer size);
+    
+    /**
+     * 根据ID获取盲盒详情
+     */
+    MagicBagDto getMagicBagById(Integer id);
+    
+    /**
+     * 根据分类获取盲盒
+     */
+    List<MagicBagDto> getMagicBagsByCategory(String category);
+    
+    /**
+     * 根据商家ID获取盲盒
+     */
+    List<MagicBagDto> getMagicBagsByMerchantId(Integer merchantId);
+}
