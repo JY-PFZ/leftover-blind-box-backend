@@ -1,6 +1,7 @@
 package nus.iss.se.magicbag.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -13,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 @RequiredArgsConstructor
 public class RedisUtil {
+    @Getter
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 

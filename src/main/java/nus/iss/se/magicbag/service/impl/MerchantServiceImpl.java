@@ -1,5 +1,8 @@
 package nus.iss.se.magicbag.service.impl;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.auth.common.UserContext;
@@ -29,7 +32,8 @@ public class MerchantServiceImpl implements IMerchantService {
     
     private final MerchantMapper merchantMapper;
     private final UserMapper userMapper;
-    
+    private final BaseMapper baseMapper;
+
     @Override
     public List<MerchantDto> getAllMerchants() {
         List<Merchant> merchants = merchantMapper.findApprovedMerchants();
@@ -110,7 +114,13 @@ public class MerchantServiceImpl implements IMerchantService {
         
         log.info("商家 {} 更新店铺信息成功", currentUser.getUsername());
     }
-    
+
+    @Override
+    public IPage<MerchantDto> sortedMerchantsByScore(Integer current, Integer size, Integer minScore) {
+        IPage<MerchantDto> page = new Page<>(current,size);
+        return merchantMapper.sortedByScore(page,minScore);
+    }
+
     private MerchantDto convertToDto(Merchant merchant) {
         MerchantDto dto = new MerchantDto();
         BeanUtils.copyProperties(merchant, dto);
