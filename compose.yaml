@@ -10,4 +10,5 @@ services:
       - SPRING_REDIS_HOST=shinkansen.proxy.rlwy.net     # 远程 Redis 的公网 IP
       - SPRING_REDIS_PORT=37325
       - SPRING_REDIS_PASSWORD=kSBzZtCxzRzBKEsejmNMmsQREiWvLthk
+      - APP_URL=http://localhost:10016
     restart: unless-stopped

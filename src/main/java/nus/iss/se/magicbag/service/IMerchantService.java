@@ -1,5 +1,6 @@
 package nus.iss.se.magicbag.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import nus.iss.se.magicbag.auth.common.UserContext;
 import nus.iss.se.magicbag.dto.MerchantDto;
 import nus.iss.se.magicbag.dto.MerchantUpdateDto;
@@ -31,6 +32,8 @@ public interface IMerchantService {
      * @param currentUser 当前登录用户上下文
      */
     void updateMerchantProfile(MerchantUpdateDto merchantDto, UserContext currentUser);
+
+    IPage<MerchantDto> sortedMerchantsByScore(Integer current, Integer size,  Integer minScore);
 }
 
 
