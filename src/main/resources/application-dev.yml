@@ -50,6 +50,7 @@ spring:
 
 # ---------- JWT 配置 ----------
 common:
+  url: ${APP_URL:http://localhost:10016}
   jwt:
     secret: k3b8Xq1v2Zm9Yp6Wn5Lr8As3Dx7Cv1Bn9Mq4Xs8Vj2Kp5Lw9Zt6Eq4Am8Nq1Vp5Lw9Zt6Eq4Am8Nq1Vp5Lw9Zt6Eq4A==
     expire-minutes: 120

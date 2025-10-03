@@ -1,5 +1,6 @@
 package nus.iss.se.magicbag.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -8,8 +9,10 @@ import nus.iss.se.magicbag.auth.common.UserContext;
 import nus.iss.se.magicbag.auth.common.UserContextHolder;
 import nus.iss.se.magicbag.common.Result;
 import nus.iss.se.magicbag.dto.MerchantDto;
+import nus.iss.se.magicbag.dto.MerchantLocationDto;
 import nus.iss.se.magicbag.dto.MerchantUpdateDto;
 import nus.iss.se.magicbag.service.IMerchantService;
+import nus.iss.se.magicbag.service.MerchantLocationService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +26,7 @@ public class MerchantController {
     
     private final IMerchantService merchantService;
     private final UserContextHolder userContextHolder;
+    private final MerchantLocationService merchantLocationService;
     
     /**
      * 获取所有已审核的商家列表
@@ -55,6 +59,24 @@ public class MerchantController {
         UserContext currentUser = userContextHolder.getCurrentUser();
         merchantService.updateMerchantProfile(merchantDto, currentUser);
         return Result.success();
+    }
+
+    @GetMapping("/nearby")
+    @Operation(summary = "查询周边商家，根据距离排序", description = "根据经纬度查询周边商家")
+    public Result<List<MerchantLocationDto>> getNearby(
+            @RequestParam double lat,
+            @RequestParam double lon,
+            @RequestParam(defaultValue = "1") double radius) {
+
+        List<MerchantLocationDto> nearbyMerchants = merchantLocationService.getNearbyMerchants(lon, lat, radius);
+        return Result.success(nearbyMerchants);
+    }
+
+    @GetMapping("/nearby")
+    @Operation(summary = "根据评分排序商铺", description = "根据评分排序商铺")
+    public Result<IPage<MerchantDto>> sortedByScore(@RequestParam(defaultValue = "1", name = "current") Integer current, @RequestParam(defaultValue = "10", name = "size") Integer size, @RequestParam(defaultValue = "0", name = "minScore")Integer minScore){
+        IPage<MerchantDto> listByScore = merchantService.sortedMerchantsByScore(current,size, minScore);
+        return Result.success(listByScore);
     }
 }
 

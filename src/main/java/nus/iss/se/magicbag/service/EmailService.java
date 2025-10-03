@@ -2,10 +2,12 @@ package nus.iss.se.magicbag.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.common.constant.RedisPrefix;
 import nus.iss.se.magicbag.util.RedisUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -18,11 +20,15 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @RequiredArgsConstructor
 public class EmailService {
+    @Getter
+    @Value("${common.url}")
+    private String URL;
+
     private final RedisUtil redisUtil;
     private final JavaMailSender javaMailSender;
 
     private static final Random RANDOM = new Random();
-    private static final String ACTIVATE_URL = "http://localhost:10016/api/auth/activate";
+    private static final String ACTIVATE_API = "api/auth/activate";
 
     // 发送验证码邮件（HTML 格式）
     public void sendVerificationCode1(String to, String code) throws MessagingException {
@@ -66,7 +72,7 @@ public class EmailService {
     public void sendActivationEmail(String to) throws MessagingException {
         // 1. 构建激活链接
         String token = UUID.randomUUID().toString();
-        String activateUrl = ACTIVATE_URL + "?token=" + token;
+        String activateUrl = generateActivateLink(token);
 
         // 2. 保存 token 到Redis（有效期 3 小时）
         redisUtil.set(RedisPrefix.ACCOUNT_ACTIVATE_TOKEN.getCode() + token, to, 3, TimeUnit.HOURS);
@@ -164,5 +170,9 @@ public class EmailService {
             </body>
             </html>
             """.formatted(to, to, activateUrl, activateUrl, activateUrl);
+    }
+
+    private String generateActivateLink(String token){
+        return URL + "/" + ACTIVATE_API + "?token=" + token;
     }
 }

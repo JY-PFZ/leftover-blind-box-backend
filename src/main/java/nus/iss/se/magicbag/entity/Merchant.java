@@ -20,6 +20,7 @@ public class Merchant {
     private BigDecimal latitude;
     private BigDecimal longitude;
     private String status;
+    private double score;
     private Date createdAt;
     private Date updatedAt;
     private Date approvedAt;
