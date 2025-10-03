@@ -1,6 +1,7 @@
 package nus.iss.se.magicbag.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
@@ -20,7 +21,7 @@ public class MagicBag {
 
     private String description;
 
-    private float price;
+    private BigDecimal price;
 
     private Integer quantity;
 
@@ -82,12 +83,18 @@ public class MagicBag {
         this.description = description;
     }
 
-    public float getPrice() {
+
+    public BigDecimal getPriceBigDecimal() {
         return price;
     }
 
-    public void setPrice(float price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+    
+
+    public double getPrice() {
+        return price != null ? price.doubleValue() : 0.0;
     }
 
     public Integer getQuantity() {
@@ -143,7 +150,7 @@ public class MagicBag {
     }
 
     public void setActive(boolean active) {
-        isActive = true;
+        isActive = active;
     }
 
     public LocalDateTime getCreatedAt() {
