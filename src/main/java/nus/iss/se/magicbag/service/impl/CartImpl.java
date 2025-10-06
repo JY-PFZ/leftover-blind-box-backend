@@ -11,6 +11,7 @@ import nus.iss.se.magicbag.mapper.CartItemMapper;
 import nus.iss.se.magicbag.mapper.MagicBagMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,6 +48,7 @@ public class CartImpl implements CartInterface {
     }
 
     @Override
+    @Transactional
     public CartDto addItemToCart(Integer userId, Integer magicBagId, int quantity) {
         Cart cart = cartMapper.findByUserId(userId);
         if (cart == null) {
@@ -176,10 +178,15 @@ public class CartImpl implements CartInterface {
 
     private CartDto convertToCartDto(Cart cart) {
         if (cart == null) return null;
-        List<CartItemDto> items = cart.getCartItems().stream().map(item -> {
+        List<CartItem> cartItems = cart.getCartItems();
+        if (cartItems == null) {
+            cartItems = List.of();
+        }
+        List<CartItemDto> items = cartItems.stream().map(item -> {
             MagicBag bag = magicBagMapper.selectById(item.getMagicBagId());
             double subtotal = bag.getPrice() * item.getQuantity();
-            return new CartItemDto(item.getCartItemId(), bag.getTitle(), bag.getPrice(), item.getQuantity(), subtotal);
+            return new CartItemDto(item.getCartItemId(), bag.getTitle(), 
+                                   bag.getPrice(), item.getQuantity(), subtotal);
         }).collect(Collectors.toList());
         double total = items.stream().mapToDouble(CartItemDto::getSubtotal).sum();
         return new CartDto(cart.getCartId(), cart.getUserId(), items, total);
