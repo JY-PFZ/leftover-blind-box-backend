@@ -1,5 +1,5 @@
 server:
-  port: 10016
+  port: 10015
 
 spring:
   # ========== 禁用 JPA 自动配置 ==========
@@ -10,16 +10,16 @@ spring:
 
   # 数据库配置 - MySQL
   datasource:
-    url: jdbc:mysql://nozomi.proxy.rlwy.net:26543/railway?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://switchyard.proxy.rlwy.net:48967/magicbag?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
-    password: RzyhRxPmpHekutjdLQtGDDqeDtTEJwkQ
+    password: eLOEKycUfEYpkqRpAxujIDNdWgTBqXvM
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   data:
     redis:
-      host: shinkansen.proxy.rlwy.net
-      port: 37325
-      password: kSBzZtCxzRzBKEsejmNMmsQREiWvLthk
+      host: switchyard.proxy.rlwy.net
+      port: 30874
+      password: bTUzwVilWIbUaqDwnMohrPoXEbbJZYyl
       connect-timeout: 5s
       lettuce:
         pool:
@@ -50,7 +50,7 @@ spring:
 
 # ---------- JWT 配置 ----------
 common:
-  url: ${APP_URL:http://localhost:10016}
+  url: ${APP_URL:http://localhost:10015}
   jwt:
     secret: k3b8Xq1v2Zm9Yp6Wn5Lr8As3Dx7Cv1Bn9Mq4Xs8Vj2Kp5Lw9Zt6Eq4Am8Nq1Vp5Lw9Zt6Eq4Am8Nq1Vp5Lw9Zt6Eq4A==
     expire-minutes: 120

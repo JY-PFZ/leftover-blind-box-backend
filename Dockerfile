@@ -24,6 +24,6 @@ WORKDIR /app
 # 从构建阶段复制 jar
 COPY --from=builder /app/target/*.jar app.jar
 
-EXPOSE 10016
+EXPOSE 10015
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar","--server.address=0.0.0.0"]
