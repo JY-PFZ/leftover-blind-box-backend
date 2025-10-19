@@ -15,3 +15,13 @@
    return Result.success("hello spring security: " + currentUser.toString());
    }
 }
+
+前端	Vue.js	快速开发、组件化、生态好
+后端	Spring Boot	成熟稳定、集成强、易维护
+认证鉴权	Spring Security + JWT	安全、无状态、多角色支持
+数据库	MySQL	稳定、事务支持、易上手
+ORM	MyBatis + MP	灵活+高效，兼顾控制与速度
+缓存	Redis	高性能，为未来扩展准备
+日志系统：SLF4J + Logback
+部署与运维：Docker
+接口文档管理：SpringDoc
