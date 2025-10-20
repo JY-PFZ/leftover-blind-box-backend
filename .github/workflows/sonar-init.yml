@@ -1,0 +1,30 @@
+name: Initialize SonarCloud
+
+on:
+  workflow_dispatch:  # 手动触发
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 必须完整历史
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # 关键：只编译，不测试（避免测试失败导致分析中断）
+      - name: Compile only
+        run: mvn clean compile
+
+      - name: SonarCloud Scan
+        run: |
+          mvn sonar:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.projectKey=nus.iss.se:leftover-blind-box-backend
