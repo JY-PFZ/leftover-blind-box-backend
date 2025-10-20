@@ -10,7 +10,6 @@ on:
   push:
     branches:
       - main
-      - feature/V1.2
 
 jobs:
   qodana:
