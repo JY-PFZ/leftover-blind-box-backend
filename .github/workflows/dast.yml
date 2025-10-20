@@ -15,28 +15,32 @@ jobs:
     name: DAST - OWASP ZAP Scan
     runs-on: ubuntu-latest
     steps:
-      - name: ⏳ Wait for app to start
-        run: sleep 45
+#      - name: ⏳ Wait for app to start
+#        run: sleep 45
 
       - name: 🕸️ Run ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.13.0
         with:
           target: ${{ env.TARGET_URL }}
-          cmd_options: "-t 600 -f json -J zap_report.json"
+          cmd_options: "-t 600 -f json -J zap_report.json -r report.html"
+        continue-on-error: true  # ✅ 关键！必须加这一行
 
       - name: 🔍 Check for High/Critical Vulnerabilities
         if: always()
         run: |
           if [ ! -f zap_report.json ]; then
-            echo "❌ zap_report.json not found!"
+            echo "❌ zap_report.json not found! Scan may have failed."
             exit 1
           fi
+
           high_or_critical=$(jq -r '
             .site[]?.alerts[]? 
             | select(.riskcode | tonumber >= 2) 
             | .name + " (" + .riskdesc + ") at " + .url
           ' zap_report.json)
+
           count=$(echo "$high_or_critical" | grep -v "^$" | wc -l)
+
           if [ "$count" -gt 0 ]; then
             echo "🚨 DAST FAILED: Found $count high/critical vulnerabilities:"
             echo "$high_or_critical"
@@ -45,13 +49,12 @@ jobs:
             echo "✅ DAST passed."
           fi
 
-      # ✅ 关键步骤：上传报告到 GitHub
       - name: 📤 Upload ZAP DAST Report to GitHub
         uses: actions/upload-artifact@v4
-        if: always()  # 即使失败也上传，方便排查
+        if: always()
         with:
-          name: dast-report-${{ github.sha }}  # 带 commit ID，避免覆盖
+          name: dast-report-${{ github.sha }}
           path: |
             report.html
             zap_report.json
-          retention-days: 30  # 保留30天（默认7天）
+          retention-days: 30
