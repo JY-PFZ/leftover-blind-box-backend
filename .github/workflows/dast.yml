@@ -22,7 +22,7 @@ jobs:
         uses: zaproxy/action-baseline@v0.13.0
         with:
           target: ${{ env.TARGET_URL }}
-          cmd_options: "-t 600 -f json -J zap_report.json -r report.html"
+          cmd_options: "-t 600 -J zap_report.json -r report.html"
         continue-on-error: true  # ✅ 关键！必须加这一行
 
       - name: 🔍 Check for High/Critical Vulnerabilities
