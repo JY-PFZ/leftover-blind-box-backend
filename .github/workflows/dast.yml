@@ -54,7 +54,7 @@ jobs:
           echo "✅ Target service is reachable"
 
       - name: 🕸️ Run ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.16.0  # 升级到最新稳定版
+        uses: zaproxy/action-baseline@v0.13.0 # 升级到最新稳定版
         with:
           target: ${{ env.TARGET_URL }}
           # 修正参数：-T 表示总超时（分钟），-m 表示爬虫时间（分钟）
