@@ -8,15 +8,15 @@ on:
 env:
   APP_PORT: 10015
   DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/magic-bag-mono
-#  TARGET_URL: http://${{ secrets.EC2_HOST }}:10015
+  TARGET_URL: http://${{ secrets.EC2_HOST }}:10015
 
 jobs:
   dast:
     name: DAST - OWASP ZAP Scan
     runs-on: ubuntu-latest
     steps:
-      - name: ⏳ Wait for app to start
-        run: sleep 45
+#      - name: ⏳ Wait for app to start
+#        run: sleep 45
 
       # ✅ 动态设置 TARGET_URL，使用 secret
       - name: 🔐 Set TARGET_URL from secret
