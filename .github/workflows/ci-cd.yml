@@ -70,12 +70,12 @@ jobs:
             # 登录 Docker Hub（拉取私有镜像需要）
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
             # 停止并移除旧容器
-            docker stop magic-app || true
-            docker rm magic-app || true
+            docker stop magic-bag-mono || true
+            docker rm magic-bag-mono || true
             # 拉取最新镜像并运行
             docker pull ${{ env.DOCKER_IMAGE }}:latest
             docker run -d \
-              --name magic-app \
+              --name magic-bag-mono \
               -p ${{ env.APP_PORT }}:${{ env.APP_PORT }} \
               ${{ env.DOCKER_IMAGE }}:latest
 
