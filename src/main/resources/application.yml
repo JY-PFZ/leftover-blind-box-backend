@@ -1,28 +1,20 @@
-spring:
-  application:
-    name: leftover-blind-box-backend
+server:
+  port: 10015
 
-  # 环境
+spring:
   profiles:
     active: dev
+  application:
+    name: magic-bag-mono
+  # 从 Spring Boot 2.4 开始，引入了新的配置导入机制 spring.config.import，它可以在 application.yml 中直接导入外部配置源（如 Nacos）
+  config:
+    import:
+      - nacos:${spring.application.name}-${spring.profiles.active}.yaml?group=${spring.application.name}&refresh=true
+      - nacos:shared-config.yaml?refresh=true
 
-mybatis-plus:
-  mapper-locations: classpath*:mapper/*.xml
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl    # 控制台打印SQL
-    map-underscore-to-camel-case: true                      # 开启驼峰映射
-  global-config:
-    db-config:
-      id-type: auto
-
-# springdoc 配置
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-  # 分组配置（可选）
-  group-configs:
-    - group: 'public-api'
-      paths-to-match: '/api/**'
-      packages-to-scan: nus.iss.se.magicbag.controller
+  cloud:
+    nacos:
+      username: nacos
+      password: nacos
+      config:
+        server-addr: 54.169.196.90:8848  # Nacos配置中心地址
