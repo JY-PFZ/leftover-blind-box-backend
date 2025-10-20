@@ -81,6 +81,7 @@ jobs:
 
   dast:
     name: ZAP Security Scan
+    needs: deploy
     runs-on: ubuntu-latest
     steps:
       - name: ⏳ Wait for application to start
