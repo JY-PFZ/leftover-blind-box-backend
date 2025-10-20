@@ -28,8 +28,7 @@ jobs:
           fi
           echo "TARGET_URL=http://${EC2_HOST_CLEAN}:10015" >> $GITHUB_ENV
 
-      - name:
-          🔍 Debug: Print TARGET_URL
+      - name: 🔍 Debug-Print TARGET_URL
         run: |
           echo "Final TARGET_URL: $TARGET_URL"
           curl -I --connect-timeout 5 "$TARGET_URL" || echo "⚠️ Cannot reach target (may be firewall issue)"
