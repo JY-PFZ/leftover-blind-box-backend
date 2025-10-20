@@ -18,15 +18,26 @@ jobs:
 #      - name: ⏳ Wait for app to start
 #        run: sleep 45
 
-      # ✅ 动态设置 TARGET_URL，使用 secret
       - name: 🔐 Set TARGET_URL from secret
         run: |
-          echo "TARGET_URL=http://${{ secrets.EC2_HOST }}:10015" >> $GITHUB_ENV
+          # 安全地去除首尾空白
+          EC2_HOST_CLEAN=$(echo "${{ secrets.EC2_HOST }}" | tr -d '[:space:]')
+          if [ -z "$EC2_HOST_CLEAN" ]; then
+            echo "❌ EC2_HOST secret is empty!"
+            exit 1
+          fi
+          echo "TARGET_URL=http://${EC2_HOST_CLEAN}:10015" >> $GITHUB_ENV
+
+      - name:
+          🔍 Debug: Print TARGET_URL
+        run: |
+          echo "Final TARGET_URL: $TARGET_URL"
+          curl -I --connect-timeout 5 "$TARGET_URL" || echo "⚠️ Cannot reach target (may be firewall issue)"
 
       - name: 🕸️ Run ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.13.0
         with:
-          target: ${{ env.TARGET_URL }}
+          target: ${{ env.TARGET_URL }}   # 现在应该已正确设置
           cmd_options: "-t 600 -J zap_report.json -r report.html"
         continue-on-error: true
 
