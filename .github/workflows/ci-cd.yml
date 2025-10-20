@@ -1,107 +1,126 @@
-name: Spring Boot CI/CD with SAST + Docker Hub (Port 10015)
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-env:
-  APP_PORT: 10015
-  DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/magic-bag-mono
-  TARGET_URL: http://${{ secrets.EC2_HOST }}:10015
-
-jobs:
-  ci:
-    name: Build, Test & SAST
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: ⚙️ Setup JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Run tests & generate JaCoCo report
-        run: mvn -B verify
-
-      - name: 🔍 SAST-SonarQube Analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn sonar:sonar \
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.projectKey=nus.iss.se:leftover-blind-box-backend \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-
-      - name: 🚪 Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push Docker image (linux/amd64)
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          platforms: linux/amd64
-          push: true
-          tags: ${{ env.DOCKER_IMAGE }}:latest
-
-  deploy:
-    name: Deploy to EC2
-    needs: ci
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📡 Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            # 登录 Docker Hub（拉取私有镜像需要）
-            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-            # 停止并移除旧容器
-            docker stop magic-bag-mono || true
-            docker rm magic-bag-mono || true
-            # 拉取最新镜像并运行
-            docker pull ${{ env.DOCKER_IMAGE }}:latest
-            docker run -d \
-              --name magic-bag-mono \
-              -p ${{ env.APP_PORT }}:${{ env.APP_PORT }} \
-              ${{ env.DOCKER_IMAGE }}:latest
-
-  dast:
-    name: DAST - OWASP ZAP Scan
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: ⏳ Wait for app to start
-        run: sleep 45
-
-      - name: 🕸️ Run ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.13.0
-        with:
-          target: ${{ env.TARGET_URL }}
-          cmd_options: "-t 600"
-        continue-on-error: true
-
-      - name: Fail on high/critical issues
-        if: always()
-        run: |
-          if [ -f ./zap_report.json ]; then
-            issues=$(jq '.site[].alerts[] | select(.riskcode >= 2)' ./zap_report.json | wc -l)
-            if [ "$issues" -gt 0 ]; then
-              echo "🚨 DAST failed: $issues high/critical vulnerabilities"
-              exit 1
-            fi
-          fi
-          echo "✅ DAST passed."
+#name: Spring Boot CI/CD with SAST + Docker Hub (Port 10015)
+#
+#on:
+#  push:
+#    branches: [ main ]
+#  workflow_dispatch:
+#
+#env:
+#  APP_PORT: 10015
+#  DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/magic-bag-mono
+#  TARGET_URL: http://${{ secrets.EC2_HOST }}:10015
+#
+#jobs:
+#  ci:
+#    name: Build, Test & SAST
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: 📥 Checkout code
+#        uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#
+#      - name: ⚙️ Setup JDK 21
+#        uses: actions/setup-java@v4
+#        with:
+#          java-version: '21'
+#          distribution: 'temurin'
+#          cache: 'maven'
+#
+#      - name: Run tests & generate JaCoCo report
+#        run: mvn -B verify
+#
+#      - name: 🔍 SAST-SonarQube Analysis
+#        env:
+#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#        run: |
+#          mvn sonar:sonar \
+#            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+#            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+#            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+#            -Dsonar.projectKey=nus.iss.se:leftover-blind-box-backend \
+#            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+#
+#      - name: 🚪 Login to Docker Hub
+#        uses: docker/login-action@v3
+#        with:
+#          username: ${{ secrets.DOCKERHUB_USERNAME }}
+#          password: ${{ secrets.DOCKERHUB_TOKEN }}
+#
+#      - name: Build and push Docker image (linux/amd64)
+#        uses: docker/build-push-action@v5
+#        with:
+#          context: .
+#          platforms: linux/amd64
+#          push: true
+#          tags: ${{ env.DOCKER_IMAGE }}:latest
+#
+#  deploy:
+#    name: Deploy to EC2
+#    needs: ci
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: 📡 Deploy via SSH
+#        uses: appleboy/ssh-action@v1.0.3
+#        with:
+#          host: ${{ secrets.EC2_HOST }}
+#          username: ${{ secrets.EC2_USER }}
+#          key: ${{ secrets.EC2_SSH_KEY }}
+#          script: |
+#            # 登录 Docker Hub（拉取私有镜像需要）
+#            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+#            # 停止并移除旧容器
+#            docker stop magic-bag-mono || true
+#            docker rm magic-bag-mono || true
+#            # 拉取最新镜像并运行
+#            docker pull ${{ env.DOCKER_IMAGE }}:latest
+#            docker run -d \
+#              --name magic-bag-mono \
+#              -p ${{ env.APP_PORT }}:${{ env.APP_PORT }} \
+#              ${{ env.DOCKER_IMAGE }}:latest
+#
+#  dast:
+#    name: DAST - OWASP ZAP Scan
+#    needs: deploy
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: ⏳ Wait for app to start
+#        run: sleep 45
+#
+#      - name: 🕸️ Run ZAP Baseline Scan
+#        uses: zaproxy/action-baseline@v0.13.0
+#        with:
+#          target: ${{ env.TARGET_URL }}
+#          cmd_options: "-t 600 -f json -J zap_report.json"
+#
+#      - name: 🔍 Check for High/Critical Vulnerabilities
+#        if: always()
+#        run: |
+#          if [ ! -f zap_report.json ]; then
+#            echo "❌ zap_report.json not found!"
+#            exit 1
+#          fi
+#          high_or_critical=$(jq -r '
+#            .site[]?.alerts[]?
+#            | select(.riskcode | tonumber >= 2)
+#            | .name + " (" + .riskdesc + ") at " + .url
+#          ' zap_report.json)
+#          count=$(echo "$high_or_critical" | grep -v "^$" | wc -l)
+#          if [ "$count" -gt 0 ]; then
+#            echo "🚨 DAST FAILED: Found $count high/critical vulnerabilities:"
+#            echo "$high_or_critical"
+#            exit 1
+#          else
+#            echo "✅ DAST passed."
+#          fi
+#
+#      # ✅ 关键步骤：上传报告到 GitHub
+#      - name: 📤 Upload ZAP DAST Report to GitHub
+#        uses: actions/upload-artifact@v4
+#        if: always()  # 即使失败也上传，方便排查
+#        with:
+#          name: dast-report-${{ github.sha }}  # 带 commit ID，避免覆盖
+#          path: |
+#            report.html
+#            zap_report.json
+#          retention-days: 30  # 保留30天（默认7天）
