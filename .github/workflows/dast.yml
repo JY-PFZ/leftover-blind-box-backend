@@ -70,21 +70,38 @@ jobs:
             exit 1
           fi
           
-          # 提取高/严重级别的漏洞（riskcode 2=High，3=Critical）
-          high_or_critical=$(jq -r '
-            .site[]?.alerts[]? 
-            | select(.riskcode | tonumber >= 2) 
-            | "• " + .name + " (" + .riskdesc + "): " + .url
-          ' zap_report.json | grep -v "^$")
-          
-          count=$(echo "$high_or_critical" | wc -l)
+          # 使用 jq 直接计算高危漏洞数量（riskcode >= 2）
+          count=$(jq '
+          [.site[]?.alerts[]? | select(.riskcode | tonumber >= 2)] | length
+            ' zap_report.json)
+        
           if [ "$count" -gt 0 ]; then
             echo -e "\n🚨 Found $count high/critical vulnerabilities:"
-            echo "$high_or_critical"
+            # 使用 jq 直接输出高危漏洞详情
+            jq -r '
+              .site[]?.alerts[]?
+                                   | select(.riskcode | tonumber >= 2)
+                                     | "• \(.name) (\(.riskdesc)): \(.url)"
+                                     ' zap_report.json
             exit 1
           else
             echo -e "\n✅ No high/critical vulnerabilities detected"
           fi
+#          # 提取高/严重级别的漏洞（riskcode 2=High，3=Critical）
+#          high_or_critical=$(jq -r '
+#            .site[]?.alerts[]?
+#            | select(.riskcode | tonumber >= 2)
+#            | "• " + .name + " (" + .riskdesc + "): " + .url
+#          ' zap_report.json | grep -v "^$")
+#
+#          count=$(echo "$high_or_critical" | wc -l)
+#          if [ "$count" -gt 0 ]; then
+#            echo -e "\n🚨 Found $count high/critical vulnerabilities:"
+#            echo "$high_or_critical"
+#            exit 1
+#          else
+#            echo -e "\n✅ No high/critical vulnerabilities detected"
+#          fi
 
       - name: 📤 Upload scan reports
         uses: actions/upload-artifact@v4
