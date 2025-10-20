@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>nus.iss.se</groupId>
-    <artifactId>magic-bag-mono</artifactId>
+    <artifactId>leftover-blind-box-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>magic-bag-mono</name>
-    <description>magic-bag-mono</description>
+    <name>leftover-blind-box-backend</name>
+    <description>leftover-blind-box-backend</description>
     <url/>
     <licenses>
         <license/>
