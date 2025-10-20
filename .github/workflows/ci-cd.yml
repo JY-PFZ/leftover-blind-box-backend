@@ -2,7 +2,7 @@ name: Spring Boot CI/CD with SAST + Docker Hub (Port 10015)
 
 on:
   push:
-    branches: [ feature/V1.3 ]
+    branches: [ main ]
   workflow_dispatch:
 
 env:
