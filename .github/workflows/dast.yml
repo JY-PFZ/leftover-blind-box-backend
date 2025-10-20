@@ -1,4 +1,4 @@
-name: dast
+name: DAST - OWASP ZAP Scan
 
 on:
   push:
@@ -8,60 +8,85 @@ on:
 env:
   APP_PORT: 10015
   DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/magic-bag-mono
-  TARGET_URL: http://${{ secrets.EC2_HOST }}:10015
+  # 移除预定义的TARGET_URL，避免与动态设置冲突
 
 jobs:
   dast:
-    name: DAST - OWASP ZAP Scan
+    name: ZAP Security Scan
     runs-on: ubuntu-latest
     steps:
-#      - name: ⏳ Wait for app to start
-#        run: sleep 45
+#      - name: ⏳ Wait for application to start
+#        run: sleep 60  # 恢复启动等待（根据服务启动时间调整，建议60秒以上）
+#        if: ${{ !cancelled() }}
 
-      - name: 🔐 Set TARGET_URL from secret
+      - name: 🔐 Validate and set target URL
         run: |
-          # 安全地去除首尾空白
+          # 清理EC2_HOST中的空白字符，避免URL格式错误
           EC2_HOST_CLEAN=$(echo "${{ secrets.EC2_HOST }}" | tr -d '[:space:]')
+          
+          # 检查EC2_HOST是否为空
           if [ -z "$EC2_HOST_CLEAN" ]; then
-            echo "❌ EC2_HOST secret is empty!"
+            echo "❌ Error: EC2_HOST secret is empty or invalid"
             exit 1
           fi
-          echo "TARGET_URL=http://${EC2_HOST_CLEAN}:10015" >> $GITHUB_ENV
+          
+          # 构建并验证目标URL格式
+          TARGET_URL="http://${EC2_HOST_CLEAN}:${{ env.APP_PORT }}"
+          if [[ ! "$TARGET_URL" =~ ^http[s]?:// ]]; then
+            echo "❌ Error: Invalid URL format - $TARGET_URL (must start with http:// or https://)"
+            exit 1
+          fi
+          
+          echo "TARGET_URL=$TARGET_URL" >> $GITHUB_ENV
+          echo "✅ Target URL set to: $TARGET_URL"
 
-      - name: 🔍 Debug-Print TARGET_URL
+      - name: 🔍 Check target service reachability
         run: |
-          echo "Final TARGET_URL: $TARGET_URL"
-          curl -I --connect-timeout 5 "$TARGET_URL" || echo "⚠️ Cannot reach target (may be firewall issue)"
+          echo "Testing connectivity to $TARGET_URL..."
+          # 检测目标端口是否可达（超时10秒）
+          if ! curl -Is --connect-timeout 10 "$TARGET_URL" >/dev/null 2>&1; then
+            echo "❌ Error: Target service is unreachable. Check:"
+            echo "  - EC2_HOST: ${{ secrets.EC2_HOST }}"
+            echo "  - Port ${{ env.APP_PORT }} in EC2 security group"
+            echo "  - Application is running on the target"
+            exit 1
+          fi
+          echo "✅ Target service is reachable"
 
       - name: 🕸️ Run ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.13.0
+        uses: zaproxy/action-baseline@v0.16.0  # 升级到最新稳定版
         with:
-          target: ${{ env.TARGET_URL }}   # 现在应该已正确设置
-          cmd_options: "-t 600 -J zap_report.json -r report.html"
-        continue-on-error: true
+          target: ${{ env.TARGET_URL }}
+          # 修正参数：-T 表示总超时（分钟），-m 表示爬虫时间（分钟）
+          cmd_options: "-T 10 -m 5 -J zap_report.json -r report.html -d"  # -d启用调试日志
+        continue-on-error: false  # 扫描失败时直接终止（如需忽略失败可设为true）
 
-      - name: 🔍 Check for High/Critical Vulnerabilities
-        if: always()
+      - name: 🔍 Analyze vulnerabilities
+        if: always()  # 即使扫描失败也执行（用于捕获报告生成失败的情况）
         run: |
-          if [ ! -f zap_report.json ]; then
-            echo "❌ zap_report.json not found!"
+          # 检查报告文件是否生成
+          if [ ! -f "zap_report.json" ] || [ ! -f "report.html" ]; then
+            echo "❌ Error: ZAP report files not found. Scan may have failed."
             exit 1
           fi
+          
+          # 提取高/严重级别的漏洞（riskcode 2=High，3=Critical）
           high_or_critical=$(jq -r '
             .site[]?.alerts[]? 
             | select(.riskcode | tonumber >= 2) 
-            | .name + " (" + .riskdesc + ") at " + .url
-          ' zap_report.json)
-          count=$(echo "$high_or_critical" | grep -v "^$" | wc -l)
+            | "• " + .name + " (" + .riskdesc + "): " + .url
+          ' zap_report.json | grep -v "^$")
+          
+          count=$(echo "$high_or_critical" | wc -l)
           if [ "$count" -gt 0 ]; then
-            echo "🚨 DAST FAILED: Found $count high/critical vulnerabilities:"
+            echo -e "\n🚨 Found $count high/critical vulnerabilities:"
             echo "$high_or_critical"
             exit 1
           else
-            echo "✅ DAST passed."
+            echo -e "\n✅ No high/critical vulnerabilities detected"
           fi
 
-      - name: 📤 Upload ZAP DAST Report to GitHub
+      - name: 📤 Upload scan reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
