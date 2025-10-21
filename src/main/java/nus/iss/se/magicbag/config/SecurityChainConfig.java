@@ -46,17 +46,18 @@ public class SecurityChainConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> {})
+                // 明确告诉 Spring Security 使用我们下面定义的 corsConfigurationSource Bean
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/auth/*").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // 修正：改为 /api/auth/**
                         .requestMatchers("/api/user/register").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/swagger-resources/**").permitAll()
                         .requestMatchers("/webjars/**").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS).permitAll()  // 放行 OPTIONS 预检
+                        .requestMatchers(HttpMethod.OPTIONS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -78,17 +79,30 @@ public class SecurityChainConfig {
         String json = objectMapper.writeValueAsString(Result.error(ResultStatus.FAIL,"Please login first"));
         response.getWriter().write(json);
     }
+
     // CORS 配置
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("http://localhost:*")); // 允许所有 localhost 端口
-        config.setAllowedMethods(List.of("*"));
+        // 允许的前端来源 (使用 setAllowedOrigins 更为推荐)
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        // 允许的方法
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // 允许的请求头
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true); // 如果需要 Cookie 认证
+        // 允许携带凭证
+        config.setAllowCredentials(true);
+
+        // ===============================================================
+        // 关键的修复：将 x-new-token 暴露给前端
+        // ===============================================================
+        config.setExposedHeaders(List.of("x-new-token"));
+
+        // 预检请求的缓存时间
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // 对所有路径应用此CORS配置
         source.registerCorsConfiguration("/**", config);
         return source;
     }
