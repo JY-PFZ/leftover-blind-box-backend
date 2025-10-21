@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @RestController
+@RequestMapping("/api/file")
 @RequiredArgsConstructor
 public class FileController {
 
@@ -26,6 +27,7 @@ public class FileController {
 
     @GetMapping("/download/{key}")
     public ResponseEntity<byte[]> download(@PathVariable String key) throws IOException {
+        key = "uploads/" + key;
         if (!s3StorageService.exists(key)) {
             throw new RuntimeException("File not found");
         }
