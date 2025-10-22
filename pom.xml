@@ -52,12 +52,6 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- **核心修复：添加这个依赖来引入事务管理功能** -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
-        </dependency>
-
         <!-- Mysql 驱动-->
         <dependency>
             <groupId>com.mysql</groupId>

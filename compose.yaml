@@ -4,11 +4,11 @@ services:
     build: .
     image: magic-bag-backend  # 自定义镜像名为目标名称
     ports:
-      - '8081:10016' # <-- 这是你的修改，被保留了
+      - '8081:8080'
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_REDIS_HOST=shinkansen.proxy.rlwy.net
+      - SPRING_REDIS_HOST=shinkansen.proxy.rlwy.net     # 远程 Redis 的公网 IP
       - SPRING_REDIS_PORT=37325
       - SPRING_REDIS_PASSWORD=kSBzZtCxzRzBKEsejmNMmsQREiWvLthk
-      - APP_URL=http://localhost:10016 # <-- 这是你同事的修改，也被保留了
+      - APP_URL=http://localhost:10016
     restart: unless-stopped
