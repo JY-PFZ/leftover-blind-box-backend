@@ -2,15 +2,19 @@ package nus.iss.se.magicbag.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import nus.iss.se.magicbag.dto.MagicBagCreateDto;
 import nus.iss.se.magicbag.dto.MagicBagDto;
 import nus.iss.se.magicbag.dto.MagicBagListResponse;
+import nus.iss.se.magicbag.dto.MagicBagUpdateDto;
 import nus.iss.se.magicbag.entity.MagicBag;
 import nus.iss.se.magicbag.mapper.MagicBagMapper;
 import nus.iss.se.magicbag.service.IMagicBagService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,6 +69,84 @@ public class MagicBagServiceImpl implements IMagicBagService {
         return magicBags.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional
+    public MagicBagDto createMagicBag(MagicBagCreateDto createDto) {
+        MagicBag magicBag = new MagicBag();
+        BeanUtils.copyProperties(createDto, magicBag);
+        
+        // 设置默认值
+        magicBag.setActive(true);
+        magicBag.setCreatedAt(LocalDateTime.now());
+        magicBag.setUpdatedAt(LocalDateTime.now());
+        
+        magicBagMapper.insert(magicBag);
+        
+        return convertToDto(magicBag);
+    }
+    
+    @Override
+    @Transactional
+    public MagicBagDto updateMagicBag(Integer id, MagicBagUpdateDto updateDto) {
+        MagicBag existingMagicBag = magicBagMapper.selectById(id);
+        if (existingMagicBag == null) {
+            throw new RuntimeException("盲盒不存在");
+        }
+        
+        // 只更新非空字段
+        if (updateDto.getTitle() != null) {
+            existingMagicBag.setTitle(updateDto.getTitle());
+        }
+        if (updateDto.getDescription() != null) {
+            existingMagicBag.setDescription(updateDto.getDescription());
+        }
+        if (updateDto.getPrice() != null) {
+            existingMagicBag.setPrice(updateDto.getPrice());
+        }
+        if (updateDto.getQuantity() != null) {
+            existingMagicBag.setQuantity(updateDto.getQuantity());
+        }
+        if (updateDto.getPickupStartTime() != null) {
+            existingMagicBag.setPickupStartTime(updateDto.getPickupStartTime());
+        }
+        if (updateDto.getPickupEndTime() != null) {
+            existingMagicBag.setPickupEndTime(updateDto.getPickupEndTime());
+        }
+        if (updateDto.getAvailableDate() != null) {
+            existingMagicBag.setAvailableDate(updateDto.getAvailableDate());
+        }
+        if (updateDto.getCategory() != null) {
+            existingMagicBag.setCategory(updateDto.getCategory());
+        }
+        if (updateDto.getImageUrl() != null) {
+            existingMagicBag.setImageUrl(updateDto.getImageUrl());
+        }
+        if (updateDto.getIsActive() != null) {
+            existingMagicBag.setActive(updateDto.getIsActive());
+        }
+        
+        existingMagicBag.setUpdatedAt(LocalDateTime.now());
+        
+        magicBagMapper.updateById(existingMagicBag);
+        
+        return convertToDto(existingMagicBag);
+    }
+    
+    @Override
+    @Transactional
+    public boolean deleteMagicBag(Integer id) {
+        MagicBag magicBag = magicBagMapper.selectById(id);
+        if (magicBag == null) {
+            return false;
+        }
+        
+        magicBag.setActive(false);
+        magicBag.setUpdatedAt(LocalDateTime.now());
+        
+        int result = magicBagMapper.updateById(magicBag);
+        return result > 0;
     }
     
     private MagicBagDto convertToDto(MagicBag magicBag) {
