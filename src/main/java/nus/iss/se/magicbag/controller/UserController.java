@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import nus.iss.se.magicbag.auth.common.UserContext;
 import nus.iss.se.magicbag.auth.common.UserContextHolder;
 import nus.iss.se.magicbag.common.Result;
+import nus.iss.se.magicbag.common.constant.ResultStatus; // 🟢 1. 确保导入 ResultStatus
 import nus.iss.se.magicbag.dto.RegisterReq;
 import nus.iss.se.magicbag.dto.UserDto;
 import nus.iss.se.magicbag.entity.User;
@@ -39,17 +40,24 @@ public class UserController {
     public Result<User> getCurrentUserProfile() {
         // 从 Spring Security 上下文中获取当前用户信息
         UserContext currentUserContext = userContextHolder.getCurrentUser();
-        if (currentUserContext == null || currentUserContext.getUsername() == null) {
+
+        // 🟢 2. 【修复】检查 ID 而不是 Username，因为 ID 是可靠的
+        if (currentUserContext == null || currentUserContext.getId() == null) {
             // 如果安全上下文中没有用户信息，返回错误
-            return Result.error("User not found in security context. Please log in again.");
+            // 🟢 3. 【修复】使用标准错误码返回
+            return Result.error(ResultStatus.USER_NOT_FOUND.getCode(), "User not found in security context. Please log in again.");
         }
 
-        // 使用用户名从数据库中查找完整的用户信息
-        User user = userService.findByUsername(currentUserContext.getUsername());
+        // 🟢 4. 【修复】使用 getById (或 selectById) 而不是 findByUsername
+        // 我们从 "createOrderFromCart" 接口得知 .getId() 是可靠的
+        User user = userService.getById(currentUserContext.getId());
 
         // 安全措施：在将用户信息发送到前端之前，清除密码字段
         if (user != null) {
             user.setPassword(null);
+        } else {
+            // 🟢 5. 【修复】如果根据 ID 也找不到，说明数据有问题
+            return Result.error(ResultStatus.USER_NOT_FOUND.getCode(), "User profile not found in database.");
         }
 
         return Result.success(user);
