@@ -26,4 +26,5 @@ public class Order {
     private Date paidAt;
     private Date completedAt;
     private Date cancelledAt;
+    private String orderType; // "single" 或 "cart"
 }

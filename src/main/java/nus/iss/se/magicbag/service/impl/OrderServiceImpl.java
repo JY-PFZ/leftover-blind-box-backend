@@ -23,6 +23,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import nus.iss.se.magicbag.entity.OrderItem;
+import nus.iss.se.magicbag.mapper.OrderItemMapper;
+import nus.iss.se.magicbag.service.impl.CartImpl;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,6 +42,8 @@ public class OrderServiceImpl implements IOrderService {
     private final UserMapper userMapper;
     private final MagicBagMapper magicBagMapper;
     private final MerchantMapper merchantMapper;
+    private final OrderItemMapper orderItemMapper;
+    private final CartImpl cartService;
     
     @Override
     public IPage<OrderDto> getOrders(UserContext currentUser, OrderQueryDto queryDto) {
@@ -295,6 +302,115 @@ public class OrderServiceImpl implements IOrderService {
     private OrderVerificationDto convertToVerificationDto(OrderVerification verification) {
         OrderVerificationDto dto = new OrderVerificationDto();
         BeanUtils.copyProperties(verification, dto);
+        return dto;
+    }
+    
+    @Override
+    @Transactional
+    public OrderDto createOrderFromCart(Integer userId) {
+        // 1. 获取购物车
+        CartDto cart = cartService.getActiveCart(userId);
+        if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
+            throw new BusinessException(ResultStatus.DATA_IS_WRONG);
+        }
+        
+        // 2. 计算总价
+        BigDecimal totalPrice = cart.getItems().stream()
+                .map(item -> BigDecimal.valueOf(item.getSubtotal()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        // 3. 创建主订单
+        Order order = new Order();
+        order.setOrderNo(generateOrderNo());
+        order.setUserId(userId);
+        order.setOrderType("cart");
+        order.setTotalPrice(totalPrice);
+        order.setStatus("pending");
+        order.setPickupCode(generatePickupCode());
+        order.setCreatedAt(new Date());
+        order.setUpdatedAt(new Date());
+        
+        // 设置自提时间（使用第一个商品的自提时间）
+        if (!cart.getItems().isEmpty()) {
+            CartItemDto firstItem = cart.getItems().get(0);
+            MagicBag firstBag = magicBagMapper.selectById(firstItem.getMagicbagId());
+            if (firstBag != null) {
+                // 转换LocalTime为Date（使用当前日期）
+                java.time.LocalDate today = java.time.LocalDate.now();
+                order.setPickupStartTime(java.sql.Date.valueOf(today));
+                order.setPickupEndTime(java.sql.Date.valueOf(today));
+            }
+        }
+        
+        orderMapper.insert(order);
+        
+        // 4. 创建订单明细
+        for (CartItemDto item : cart.getItems()) {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrderId(order.getId());
+            orderItem.setMagicBagId(item.getMagicbagId());
+            orderItem.setQuantity(item.getQuantity());
+            orderItem.setUnitPrice(BigDecimal.valueOf(item.getPrice()));
+            orderItem.setSubtotal(BigDecimal.valueOf(item.getSubtotal()));
+            orderItem.setCreatedAt(LocalDateTime.now());
+            orderItemMapper.insert(orderItem);
+        }
+        
+        // 5. 清空购物车
+        cartService.clearCart(userId);
+        
+        // 6. 返回订单信息
+        return convertToOrderDto(order);
+    }
+    
+    /**
+     * 生成订单号
+     */
+    private String generateOrderNo() {
+        return "ORD" + System.currentTimeMillis();
+    }
+    
+    /**
+     * 生成自提码
+     */
+    private String generatePickupCode() {
+        return String.valueOf((int) (Math.random() * 9000) + 1000);
+    }
+    
+    /**
+     * 转换订单实体为DTO
+     */
+    private OrderDto convertToOrderDto(Order order) {
+        OrderDto dto = new OrderDto();
+        BeanUtils.copyProperties(order, dto);
+        
+        // 如果是购物车订单，查询订单明细
+        if ("cart".equals(order.getOrderType())) {
+            List<OrderItem> orderItems = orderItemMapper.findByOrderId(order.getId());
+            List<OrderItemDto> itemDtos = orderItems.stream()
+                    .map(this::convertToOrderItemDto)
+                    .collect(Collectors.toList());
+            dto.setOrderItems(itemDtos);
+        }
+        
+        return dto;
+    }
+    
+    /**
+     * 转换订单明细实体为DTO
+     */
+    private OrderItemDto convertToOrderItemDto(OrderItem orderItem) {
+        OrderItemDto dto = new OrderItemDto();
+        BeanUtils.copyProperties(orderItem, dto);
+        
+        // 查询商品信息
+        MagicBag magicBag = magicBagMapper.selectById(orderItem.getMagicBagId());
+        if (magicBag != null) {
+            dto.setMagicBagTitle(magicBag.getTitle());
+            dto.setMagicBagImageUrl(magicBag.getImageUrl());
+            dto.setMagicBagCategory(magicBag.getCategory());
+        }
+        
         return dto;
     }
 }

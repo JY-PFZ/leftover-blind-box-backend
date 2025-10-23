@@ -22,8 +22,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import nus.iss.se.magicbag.entity.OrderItem;
+import nus.iss.se.magicbag.mapper.OrderItemMapper;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,7 @@ public class PaymentService {
     private final MagicBagMapper magicBagMapper;
     private final UserMapper userMapper;
     private final MerchantMapper merchantMapper;
+    private final OrderItemMapper orderItemMapper;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -58,7 +62,7 @@ public class PaymentService {
         PaymentResponseDto response = new PaymentResponseDto();
 
         Order order = orderMapper.selectById(orderId);
-        if (order == null || order.getTotalPrice() == null || order.getQuantity() == null) {
+        if (order == null || order.getTotalPrice() == null) {
             response.setSuccess(false);
             response.setMessage("Order not found or invalid");
             return response;
@@ -78,37 +82,61 @@ public class PaymentService {
             return response;
         }
 
-        long amountInCents = totalPrice.multiply(BigDecimal.valueOf(100)).longValue();
-
-        String bagTitle = "Magic Bag";
-        if (order.getBagId() != null) {
-            MagicBag bag = magicBagMapper.selectById(order.getBagId());
-            if (bag != null && bag.getTitle() != null) {
-                bagTitle = bag.getTitle();
-            }
-        }
-
-        SessionCreateParams params = SessionCreateParams.builder()
+        SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 .setSuccessUrl(payUrl + "/payment/success?orderId=" + orderId + "&session_id={CHECKOUT_SESSION_ID}")
                 .setCancelUrl(payUrl + "/payment/cancel?orderId=" + orderId)
-                .addLineItem(SessionCreateParams.LineItem.builder()
-                        .setQuantity(order.getQuantity().longValue())
+                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+                // 添加 metadata,方便后续验证
+                .putMetadata("orderId", orderId.toString())
+                .putMetadata("orderNo", order.getOrderNo());
+
+        // 根据订单类型创建不同的支付项目
+        if ("cart".equals(order.getOrderType())) {
+            // 购物车订单：为每个商品创建支付项目
+            List<OrderItem> orderItems = orderItemMapper.findByOrderId(orderId);
+            for (OrderItem item : orderItems) {
+                MagicBag bag = magicBagMapper.selectById(item.getMagicBagId());
+                String bagTitle = bag != null ? bag.getTitle() : "Magic Bag";
+                
+                long unitAmountInCents = item.getUnitPrice().multiply(BigDecimal.valueOf(100)).longValue();
+                
+                paramsBuilder.addLineItem(SessionCreateParams.LineItem.builder()
+                        .setQuantity(item.getQuantity().longValue())
                         .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
                                 .setCurrency("sgd")
-                                .setUnitAmount(amountInCents)
+                                .setUnitAmount(unitAmountInCents)
                                 .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                         .setName(bagTitle)
                                         .build())
                                 .build())
-                        .build())
-                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
-                // 添加 metadata,方便后续验证
-                .putMetadata("orderId", orderId.toString())
-                .putMetadata("orderNo", order.getOrderNo())
-                .build();
+                        .build());
+            }
+        } else {
+            // 单商品订单：使用原有逻辑
+            String bagTitle = "Magic Bag";
+            if (order.getBagId() != null) {
+                MagicBag bag = magicBagMapper.selectById(order.getBagId());
+                if (bag != null && bag.getTitle() != null) {
+                    bagTitle = bag.getTitle();
+                }
+            }
 
-        Session session = Session.create(params);
+            long amountInCents = totalPrice.multiply(BigDecimal.valueOf(100)).longValue();
+            
+            paramsBuilder.addLineItem(SessionCreateParams.LineItem.builder()
+                    .setQuantity(order.getQuantity().longValue())
+                    .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
+                            .setCurrency("sgd")
+                            .setUnitAmount(amountInCents)
+                            .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                    .setName(bagTitle)
+                                    .build())
+                            .build())
+                    .build());
+        }
+
+        Session session = Session.create(paramsBuilder.build());
         if (session != null && session.getUrl() != null) {
             response.setSuccess(true);
             response.setCheckoutUrl(session.getUrl());
@@ -124,7 +152,6 @@ public class PaymentService {
 
     /**
      * 验证支付状态并更新订单
-     * 简化版:从 Stripe 查询 session 状态来验证
      */
     @Transactional
     public PaymentResponseDto verifyAndUpdatePayment(Integer orderId, String sessionId) {
