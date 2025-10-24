@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.auth.common.UserContext;
+import nus.iss.se.magicbag.auth.common.UserContextHolder;
 import nus.iss.se.magicbag.common.constant.TaskStatus;
 import nus.iss.se.magicbag.dto.MerchantDto;
 import nus.iss.se.magicbag.dto.MerchantUpdateDto;
@@ -40,6 +41,7 @@ public class MerchantServiceImpl implements IMerchantService {
     private final MerchantMapper merchantMapper;
     private final UserMapper userMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final UserContextHolder userContextHolder;
 
 
     /**
@@ -170,28 +172,100 @@ public class MerchantServiceImpl implements IMerchantService {
     }
 
     @Override
+    @Transactional
     public void registerMerchant(MerchantUpdateDto dto) {
+        // 1. 获取当前用户ID
+        UserContext currentUser = userContextHolder.getCurrentUser();
+        if (currentUser == null) {
+            throw new BusinessException(ResultStatus.USER_NOT_LOGGED_IN, "用户未登录");
+        }
+        Integer currentUserId = currentUser.getId();
 
-        // todo 1.商家信息落表，状态为待处理。保证用户商家一对一
-        // 最后落表的merchant对象,userId一定要有值
-        Merchant merchant = new Merchant();
+        // 2. 检查用户是否已有商家身份（一对一关系）
+        Merchant existingMerchant = merchantMapper.selectOne(
+            new QueryWrapper<Merchant>().eq("user_id", currentUserId)
+        );
 
-        // 创建管理员代办
-        MerchantRegisterEvent event = new MerchantRegisterEvent((long)merchant.getUserId(),(long)merchant.getId(),merchant.getName(),
-                merchant.getPhone(),merchant.getAddress(),merchant.getBusinessLicense(),merchant.getLatitude(),merchant.getLongitude());
+        Merchant merchant;
+        if (existingMerchant != null) {
+            // 如果已存在，更新现有记录
+            merchant = existingMerchant;
+            log.info("用户{}已有商家记录，将更新现有信息", currentUserId);
+        } else {
+            // 创建新的商家记录
+            merchant = new Merchant();
+        }
+
+        // 3. 复制DTO数据到实体对象
+        BeanUtils.copyProperties(dto, merchant);
+        merchant.setUserId(currentUserId);
+        merchant.setStatus("pending"); // 设置为待处理状态
+        merchant.setCreatedAt(new Date());
+        merchant.setUpdatedAt(new Date());
+
+        // 4. 保存或更新商家信息
+        if (existingMerchant != null) {
+            merchantMapper.updateById(merchant);
+        } else {
+            merchantMapper.insert(merchant);
+        }
+
+        // 5. 发布商家注册事件
+        MerchantRegisterEvent event = new MerchantRegisterEvent(
+            (long) merchant.getUserId(),
+            (long) merchant.getId(),
+            merchant.getName(),
+            merchant.getPhone(),
+            merchant.getAddress(),
+            merchant.getBusinessLicense(),
+            merchant.getLatitude(),
+            merchant.getLongitude()
+        );
         eventPublisher.publishEvent(event);
+
+        log.info("商家注册申请已提交，用户ID: {}, 商家ID: {}", currentUserId, merchant.getId());
     }
 
     @Override
     @EventListener
+    @Transactional
     public void handleRegisterResult(MerchantProcessedEvent event) {
-        log.info("处理商家{}注册结果：{}",event.userId(),event);
+        log.info("处理商家{}注册结果：{}", event.userId(), event);
 
-        // 根据event.userId(),通过userId找到商家信息
-        if (TaskStatus.APPROVED.getCode().equals(event.status())){
-            // todo 注册通过，改商家状态为通过
-        }else if (TaskStatus.REJECTED.getCode().equals(event.status())){
-            // todo 注册通过，改商家状态为j拒绝
+        try {
+            // 1. 根据userId查找商家信息
+            Merchant merchant = merchantMapper.selectOne(
+                new QueryWrapper<Merchant>().eq("user_id", event.userId())
+            );
+
+            if (merchant == null) {
+                log.warn("未找到用户ID为{}的商家记录", event.userId());
+                return;
+            }
+
+            // 2. 根据审批结果更新商家状态
+            if (TaskStatus.APPROVED.getCode().equals(event.status())) {
+                // 注册通过，更新商家状态为已通过
+                merchant.setStatus("approved");
+                merchant.setUpdatedAt(new Date());
+                merchant.setApprovedAt(new Date());
+                merchantMapper.updateById(merchant);
+
+                log.info("商家注册申请已通过，用户ID: {}, 商家ID: {}", event.userId(), merchant.getId());
+
+            } else if (TaskStatus.REJECTED.getCode().equals(event.status())) {
+                // 注册拒绝，更新商家状态为已拒绝
+                merchant.setStatus("rejected");
+                merchant.setUpdatedAt(new Date());
+                merchantMapper.updateById(merchant);
+
+                log.info("商家注册申请已拒绝，用户ID: {}, 商家ID: {}", event.userId(), merchant.getId());
+            } else {
+                log.warn("未知的审批状态: {}", event.status());
+            }
+
+        } catch (Exception e) {
+            log.error("处理商家注册结果时发生异常，用户ID: {}, 异常信息: {}", event.userId(), e.getMessage(), e);
         }
     }
 
