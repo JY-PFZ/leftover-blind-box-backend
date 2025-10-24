@@ -23,6 +23,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
@@ -43,6 +44,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
+    @Transactional
     public void register(RegisterReq req) {
         User existUser = this.baseMapper.selectByUsername(req.getUsername());
         if (existUser != null){
@@ -56,7 +58,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         user.setPassword(passwordEncoder.encode(req.getPassword()));
         this.save(user);
 
-        // 发送账户激活链接
         try {
             emailService.sendActivationEmail(req.getUsername());
         } catch (MessagingException e) {
@@ -65,6 +66,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
+    @Transactional
     @CachePut(value = "users", key = "#dto.username")
     public void updateUserInfo(UserDto dto) {
         LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
@@ -74,7 +76,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 .set(User::getNickname,dto.getNickname());
         update(wrapper);
 
-        // redis 更新
         User user = baseMapper.selectByUsername(dto.getUsername());
         UserContext userContext = new UserContext();
         BeanUtils.copyProperties(user,userContext);
@@ -82,42 +83,43 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
+    @Transactional
     @CacheEvict(value = "users", key = "#username")
     public void activateUser(String username) {
         LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(User::getUsername,username)
                 .eq(User::getStatus, UserStatus.INACTIVE.getCode())
                 .set(User::getStatus, UserStatus.ACTIVE.getCode());
-
         update(wrapper);
     }
 
     @Override
+    @Transactional
     @CacheEvict(value = "users", key = "#currentUser.username")
     public void updateUserInfo(UserDto dto, UserContext currentUser) {
-        // 1. 权限验证：确保只能修改自己的信息
+        // 1. 权限验证
         if (!Objects.equals(currentUser.getId(), dto.getId())) {
             throw new BusinessException(ResultStatus.ACCESS_DENIED, "无权限修改他人信息");
         }
-        
-        // 2. 角色验证：确保是有效角色
+
+        // **核心修复：将 "CUSTOMER" 添加为合法的角色**
         String userRole = currentUser.getRole();
-        if (!"USER".equals(userRole) && !"MERCHANT".equals(userRole)) {
+        if (!"CUSTOMER".equals(userRole) && !"MERCHANT".equals(userRole)) {
             throw new BusinessException(ResultStatus.ACCESS_DENIED, "角色权限不足");
         }
-        
-        // 3. 手机号唯一性验证（如果更新了手机号）
+
+        // 3. 手机号唯一性验证
         if (StringUtils.hasText(dto.getPhone())) {
             User existingUser = baseMapper.selectByPhone(dto.getPhone());
             if (existingUser != null && !Objects.equals(existingUser.getId(), dto.getId())) {
                 throw new BusinessException(ResultStatus.USER_HAS_EXISTED, "手机号已被其他用户使用");
             }
         }
-        
+
         // 4. 更新用户信息
         LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(User::getId, dto.getId());
-        
+
         if (StringUtils.hasText(dto.getNickname())) {
             wrapper.set(User::getNickname, dto.getNickname());
         }
@@ -127,14 +129,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (StringUtils.hasText(dto.getPhone())) {
             wrapper.set(User::getPhone, dto.getPhone());
         }
-        
+
         wrapper.set(User::getUpdatedAt, new Date());
-        
+
         boolean updated = update(wrapper);
         if (!updated) {
             throw new BusinessException(ResultStatus.FAIL, "用户信息更新失败");
         }
-        
+
         // 5. 更新缓存
         User updatedUser = baseMapper.selectById(dto.getId());
         UserContext userContext = new UserContext();
@@ -150,3 +152,4 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         log.info("Evict user: {}",username);
     }
 }
+

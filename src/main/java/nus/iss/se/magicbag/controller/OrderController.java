@@ -113,6 +113,18 @@ public class OrderController {
         OrderStatsDto stats = orderService.getOrderStats(currentUser);
         return Result.success(stats);
     }
+    
+    /**
+     * 从购物车创建订单
+     */
+    @PostMapping("/from-cart")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "从购物车创建订单", description = "将购物车中的商品转换为订单")
+    public Result<OrderDto> createOrderFromCart() {
+        UserContext currentUser = userContextHolder.getCurrentUser();
+        OrderDto order = orderService.createOrderFromCart(currentUser.getId());
+        return Result.success(order);
+    }
 }
 
 

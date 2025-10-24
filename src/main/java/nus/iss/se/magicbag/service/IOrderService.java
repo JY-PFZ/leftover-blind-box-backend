@@ -35,5 +35,10 @@ public interface IOrderService {
      * 获取订单统计信息
      */
     OrderStatsDto getOrderStats(UserContext currentUser);
+    
+    /**
+     * 从购物车创建订单
+     */
+    OrderDto createOrderFromCart(Integer userId);
 }
 
