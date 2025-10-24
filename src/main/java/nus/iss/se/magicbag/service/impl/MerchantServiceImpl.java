@@ -177,7 +177,7 @@ public class MerchantServiceImpl implements IMerchantService {
         Merchant merchant = new Merchant();
 
         // 创建管理员代办
-        MerchantRegisterEvent event = new MerchantRegisterEvent(merchant.getUserId(),(long)merchant.getId(),merchant.getName(),
+        MerchantRegisterEvent event = new MerchantRegisterEvent((long)merchant.getUserId(),(long)merchant.getId(),merchant.getName(),
                 merchant.getPhone(),merchant.getAddress(),merchant.getBusinessLicense(),merchant.getLatitude(),merchant.getLongitude());
         eventPublisher.publishEvent(event);
     }

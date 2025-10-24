@@ -16,7 +16,6 @@ public class Merchant {
     // 🟢 新增 user_id 字段，用于关联 users 表
     private Integer userId;
     private String name;
-    private Long userId;
     private String phone;
     // 🔴 修复: 添加注解，告诉 MyBatis-Plus 这个字段不映射到数据库表
     @TableField(exist = false)
