@@ -3,10 +3,14 @@ package nus.iss.se.magicbag.service.impl;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.auth.common.UserContext;
+import nus.iss.se.magicbag.common.constant.TaskStatus;
 import nus.iss.se.magicbag.dto.MerchantDto;
 import nus.iss.se.magicbag.dto.MerchantUpdateDto;
+import nus.iss.se.magicbag.dto.event.MerchantProcessedEvent;
+import nus.iss.se.magicbag.dto.event.MerchantRegisterEvent;
 import nus.iss.se.magicbag.entity.Merchant;
 import nus.iss.se.magicbag.entity.User;
 import nus.iss.se.magicbag.mapper.MerchantMapper;
@@ -16,6 +20,8 @@ import nus.iss.se.magicbag.common.exception.BusinessException;
 import nus.iss.se.magicbag.common.constant.ResultStatus;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -27,21 +33,13 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class MerchantServiceImpl implements IMerchantService {
     
     private final MerchantMapper merchantMapper;
     private final UserMapper userMapper;
-    private final BaseMapper baseMapper;
-    
-    public MerchantServiceImpl(
-        MerchantMapper merchantMapper,
-        UserMapper userMapper,
-        @Qualifier("merchantMapper") BaseMapper baseMapper
-    ) {
-        this.merchantMapper = merchantMapper;
-        this.userMapper = userMapper;
-        this.baseMapper = baseMapper;
-    }
+    private final ApplicationEventPublisher eventPublisher;
+
 
     @Override
     public List<MerchantDto> getAllMerchants() {
@@ -128,6 +126,32 @@ public class MerchantServiceImpl implements IMerchantService {
     public IPage<MerchantDto> sortedMerchantsByScore(Integer current, Integer size, Integer minScore) {
         IPage<MerchantDto> page = new Page<>(current,size);
         return merchantMapper.sortedByScore(page,minScore);
+    }
+
+    @Override
+    public void registerMerchant(MerchantUpdateDto dto) {
+
+        // todo 1.商家信息落表，状态为待处理。保证用户商家一对一
+        // 最后落表的merchant对象,userId一定要有值
+        Merchant merchant = new Merchant();
+
+        // 创建管理员代办
+        MerchantRegisterEvent event = new MerchantRegisterEvent(merchant.getUserId(),(long)merchant.getId(),merchant.getName(),
+                merchant.getPhone(),merchant.getAddress(),merchant.getBusinessLicense(),merchant.getLatitude(),merchant.getLongitude());
+        eventPublisher.publishEvent(event);
+    }
+
+    @Override
+    @EventListener
+    public void handleRegisterResult(MerchantProcessedEvent event) {
+        log.info("处理商家{}注册结果：{}",event.userId(),event);
+
+        // 根据event.userId(),通过userId找到商家信息
+        if (TaskStatus.APPROVED.getCode().equals(event.status())){
+            // todo 注册通过，改商家状态为通过
+        }else if (TaskStatus.REJECTED.getCode().equals(event.status())){
+            // todo 注册通过，改商家状态为j拒绝
+        }
     }
 
     private MerchantDto convertToDto(Merchant merchant) {

@@ -49,6 +49,13 @@ public class MerchantController {
         }
         return Result.success(merchant);
     }
+
+    @PostMapping("/register")
+    @Operation(summary = "注册商家信息", description = "用户注册自己的店铺信息")
+    public Result<Void> registerMerchantProfile(@RequestBody @Valid MerchantUpdateDto merchantDto) {
+        merchantService.registerMerchant(merchantDto);
+        return Result.success();
+    }
     
     /**
      * 更新商家信息

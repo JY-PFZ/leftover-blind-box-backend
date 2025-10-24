@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import nus.iss.se.magicbag.auth.common.UserContext;
 import nus.iss.se.magicbag.dto.MerchantDto;
 import nus.iss.se.magicbag.dto.MerchantUpdateDto;
+import nus.iss.se.magicbag.dto.event.MerchantProcessedEvent;
 
 import java.util.List;
 
@@ -34,6 +35,10 @@ public interface IMerchantService {
     void updateMerchantProfile(MerchantUpdateDto merchantDto, UserContext currentUser);
 
     IPage<MerchantDto> sortedMerchantsByScore(Integer current, Integer size,  Integer minScore);
+
+    void registerMerchant(MerchantUpdateDto dto);
+
+    void handleRegisterResult(MerchantProcessedEvent event);
 }
 
 

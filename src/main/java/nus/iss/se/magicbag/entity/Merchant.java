@@ -13,6 +13,7 @@ public class Merchant {
     @TableId
     private Integer id;
     private String name;
+    private Long userId;
     private String phone;
     private String passwordHash;
     private String businessLicense;
