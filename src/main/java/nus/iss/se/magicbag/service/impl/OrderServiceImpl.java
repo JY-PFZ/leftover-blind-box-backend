@@ -68,6 +68,7 @@ public class OrderServiceImpl implements IOrderService {
                 orderPage = orderMapper.findByMerchantId(page, merchant.getId());
                 break;
             case "USER":
+            case "CUSTOMER":
                 orderPage = orderMapper.findByUserId(page, currentUser.getId());
                 break;
             default:
@@ -156,6 +157,7 @@ public class OrderServiceImpl implements IOrderService {
                 }
                 break;
             case "USER":
+            case "CUSTOMER":
                 if (order.getUserId().equals(currentUserId)) {
                     allowed = true;
                 }
@@ -240,7 +242,7 @@ public class OrderServiceImpl implements IOrderService {
         boolean allowed = false;
         if ("SUPER_ADMIN".equals(userRole) || "ADMIN".equals(userRole)) {
             allowed = true;
-        } else if ("USER".equals(userRole) && order.getUserId().equals(currentUserId)) {
+        } else if (("USER".equals(userRole) || "CUSTOMER".equals(userRole)) && order.getUserId().equals(currentUserId)) {
             allowed = true;
         }
 
@@ -308,6 +310,7 @@ public class OrderServiceImpl implements IOrderService {
         verification.setOrderId(orderId);
         verification.setVerifiedBy(currentMerchant.getId());
         verification.setLocation(verificationDto.getLocation());
+        verification.setVerifiedAt(new Date());
         orderVerificationMapper.insert(verification);
 
         order.setStatus("completed");
@@ -334,6 +337,7 @@ public class OrderServiceImpl implements IOrderService {
                 }
                 return orderMapper.findOrderStatsByMerchantId(merchant.getId());
             case "USER":
+            case "CUSTOMER":
                 return orderMapper.findOrderStatsByUserId(currentUserId);
             default:
                 throw new BusinessException(ResultStatus.ACCESS_DENIED);
@@ -455,6 +459,13 @@ public class OrderServiceImpl implements IOrderService {
         order.setOrderNo(generateOrderNo());
         order.setUserId(userId);
         order.setOrderType("cart");
+        // 🟢 设置 bag_id 为第一个商品的 ID，用于商家和用户查询订单
+        order.setBagId(firstCartItem.getMagicbagId());
+        // 🟢 设置 quantity 为购物车商品总数
+        int totalQuantity = cart.getItems().stream()
+                .mapToInt(item -> item.getQuantity())
+                .sum();
+        order.setQuantity(totalQuantity);
         order.setTotalPrice(totalPrice);
         order.setStatus("pending");
         order.setPickupCode(generatePickupCode());

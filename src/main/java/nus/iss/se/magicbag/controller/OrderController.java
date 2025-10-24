@@ -26,7 +26,7 @@ public class OrderController {
      * 获取订单列表 - 根据角色自动过滤
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MERCHANT', 'USER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MERCHANT', 'USER', 'CUSTOMER')")
     @Operation(summary = "获取订单列表", description = "根据用户角色自动过滤订单数据")
     public Result<IPage<OrderDto>> getOrders(
             @RequestParam(defaultValue = "1") int pageNum,
@@ -52,7 +52,7 @@ public class OrderController {
      * 获取订单详情 - 根据角色验证权限
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MERCHANT', 'USER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MERCHANT', 'USER', 'CUSTOMER')")
     @Operation(summary = "获取订单详情", description = "根据用户角色验证权限后返回订单详情")
     public Result<OrderDetailResponse> getOrderDetail(@PathVariable Integer id) {
         UserContext currentUser = userContextHolder.getCurrentUser();
@@ -79,7 +79,7 @@ public class OrderController {
      * 取消订单 - 用户和管理员可以操作
      */
     @PutMapping("/{id}/cancel")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'USER', 'CUSTOMER')")
     @Operation(summary = "取消订单", description = "用户和管理员可以取消订单")
     public Result<Void> cancelOrder(@PathVariable Integer id) {
         UserContext currentUser = userContextHolder.getCurrentUser();
@@ -106,7 +106,7 @@ public class OrderController {
      * 获取订单统计信息
      */
     @GetMapping("/stats")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MERCHANT', 'USER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MERCHANT', 'USER', 'CUSTOMER')")
     @Operation(summary = "获取订单统计", description = "根据用户角色返回相应的订单统计信息")
     public Result<OrderStatsDto> getOrderStats() {
         UserContext currentUser = userContextHolder.getCurrentUser();

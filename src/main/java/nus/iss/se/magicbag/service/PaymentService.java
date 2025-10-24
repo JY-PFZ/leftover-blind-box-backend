@@ -42,7 +42,7 @@ public class PaymentService {
     @Value("${stripe.api.key}")
     private String stripeApiKey;
 
-    @Value("${app.pay-url}")
+    @Value("${app.pay-url:http://localhost:5173}")
     private String payUrl;
 
     private boolean stripeInitialized = false;
