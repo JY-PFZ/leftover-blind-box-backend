@@ -17,4 +17,4 @@ spring:
       username: nacos
       password: nacos
       config:
-        server-addr: 54.169.196.90:8848  # Nacos配置中心地址
+        server-addr: 3.1.213.148:8848  # Nacos配置中心地址
