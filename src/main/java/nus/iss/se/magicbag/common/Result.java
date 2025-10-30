@@ -5,11 +5,6 @@ import lombok.Getter;
 import nus.iss.se.magicbag.common.constant.ResultStatus;
 import org.apache.commons.lang3.StringUtils;
 
-
-/**
- * @author mijiupro
- */
-
 @Getter
 @Data
 public class Result<T> {

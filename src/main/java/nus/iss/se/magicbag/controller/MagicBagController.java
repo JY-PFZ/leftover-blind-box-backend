@@ -1,27 +1,31 @@
 package nus.iss.se.magicbag.controller;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import nus.iss.se.magicbag.common.Result;
+import nus.iss.se.magicbag.common.constant.StorageDir;
 import nus.iss.se.magicbag.dto.MagicBagCreateDto;
 import nus.iss.se.magicbag.dto.MagicBagDto;
 import nus.iss.se.magicbag.dto.MagicBagListResponse;
 import nus.iss.se.magicbag.dto.MagicBagUpdateDto;
+import nus.iss.se.magicbag.entity.MagicBag;
+import nus.iss.se.magicbag.service.FileService;
 import nus.iss.se.magicbag.service.IMagicBagService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/magic-bags")
-@CrossOrigin(origins = "*")
+@RequestMapping("/api/product")
 @Tag(name = "MagicBag API", description = "盲盒商品管理服务")
+@RequiredArgsConstructor
 public class MagicBagController {
-    
-    @Autowired
-    private IMagicBagService magicBagService;
+    private final IMagicBagService magicBagService;
+    private final FileService fileService;
     
     /**
      * 获取所有盲盒列表（分页）
@@ -115,5 +119,21 @@ public class MagicBagController {
         } catch (Exception e) {
             return Result.error("删除盲盒失败: " + e.getMessage());
         }
+    }
+
+    /**
+     * 上传产品图片
+     */
+    @PostMapping("{id}/image")
+    @Operation(summary = "上传产品图片", description = "商户上传盲盒产品图片")
+    public Result<String> uploadProductImage(@PathVariable Integer id, @RequestParam("file") MultipartFile file) {
+
+        String fileName = id+"_"+System.currentTimeMillis();
+        String key = fileService.uploadFile(StorageDir.PRODUCT_IMAGES_DIR.getCode(), fileName, file);
+        LambdaUpdateWrapper<MagicBag> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(MagicBag::getId,id).set(MagicBag::getImageUrl,key);
+        magicBagService.update(wrapper);
+
+        return Result.success();
     }
 }

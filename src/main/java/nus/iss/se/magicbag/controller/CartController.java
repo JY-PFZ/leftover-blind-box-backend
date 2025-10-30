@@ -2,10 +2,10 @@ package nus.iss.se.magicbag.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import nus.iss.se.magicbag.dto.CartDto;
 import nus.iss.se.magicbag.dto.CartItemDto;
-import nus.iss.se.magicbag.service.impl.CartImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import nus.iss.se.magicbag.service.impl.CartServiceImpl;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,10 +13,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/cart")
 @Tag(name = "Cart API", description = "APIs to manage user shopping cart")
+@RequiredArgsConstructor
 public class CartController {
-
-    @Autowired
-    private CartImpl cartService;
+    private final CartServiceImpl cartService;
 
     @PostMapping("/{userId}")
     @Operation(summary = "Create a new cart for user", description = "Creates a new shopping cart for the given user ID")

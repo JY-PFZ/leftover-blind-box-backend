@@ -2,6 +2,8 @@ package nus.iss.se.magicbag.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.RequiredArgsConstructor;
 import nus.iss.se.magicbag.dto.MagicBagCreateDto;
 import nus.iss.se.magicbag.dto.MagicBagDto;
 import nus.iss.se.magicbag.dto.MagicBagListResponse;
@@ -10,20 +12,16 @@ import nus.iss.se.magicbag.entity.MagicBag;
 import nus.iss.se.magicbag.mapper.MagicBagMapper;
 import nus.iss.se.magicbag.service.IMagicBagService;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-public class MagicBagServiceImpl implements IMagicBagService {
-
-    @Autowired
-    private MagicBagMapper magicBagMapper;
+@RequiredArgsConstructor
+public class MagicBagServiceImpl extends ServiceImpl<MagicBagMapper, MagicBag>  implements IMagicBagService {
 
     @Override
     public MagicBagListResponse getAllMagicBags(Integer page, Integer size) {
@@ -31,11 +29,11 @@ public class MagicBagServiceImpl implements IMagicBagService {
         QueryWrapper<MagicBag> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("is_active", true);
 
-        Page<MagicBag> result = magicBagMapper.selectPage(magicBagPage, queryWrapper);
+        Page<MagicBag> result = baseMapper.selectPage(magicBagPage, queryWrapper);
 
         List<MagicBagDto> magicBagDtos = result.getRecords().stream()
                 .map(this::convertToDto)
-                .collect(Collectors.toList());
+                .toList();
 
         MagicBagListResponse response = new MagicBagListResponse();
         response.setMagicBags(magicBagDtos);
@@ -49,7 +47,7 @@ public class MagicBagServiceImpl implements IMagicBagService {
 
     @Override
     public MagicBagDto getMagicBagById(Integer id) {
-        MagicBag magicBag = magicBagMapper.selectById(id);
+        MagicBag magicBag = baseMapper.selectById(id);
         if (magicBag == null) {
             return null;
         }
@@ -58,18 +56,18 @@ public class MagicBagServiceImpl implements IMagicBagService {
 
     @Override
     public List<MagicBagDto> getMagicBagsByCategory(String category) {
-        List<MagicBag> magicBags = magicBagMapper.findByCategory(category);
+        List<MagicBag> magicBags = baseMapper.findByCategory(category);
         return magicBags.stream()
                 .map(this::convertToDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     public List<MagicBagDto> getMagicBagsByMerchantId(Integer merchantId) {
-        List<MagicBag> magicBags = magicBagMapper.findByMerchantId(merchantId);
+        List<MagicBag> magicBags = baseMapper.findByMerchantId(merchantId);
         return magicBags.stream()
                 .map(this::convertToDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -83,7 +81,7 @@ public class MagicBagServiceImpl implements IMagicBagService {
         magicBag.setCreatedAt(LocalDateTime.now());
         magicBag.setUpdatedAt(LocalDateTime.now());
         
-        magicBagMapper.insert(magicBag);
+        baseMapper.insert(magicBag);
         
         return convertToDto(magicBag);
     }
@@ -91,7 +89,7 @@ public class MagicBagServiceImpl implements IMagicBagService {
     @Override
     @Transactional
     public MagicBagDto updateMagicBag(Integer id, MagicBagUpdateDto updateDto) {
-        MagicBag existingMagicBag = magicBagMapper.selectById(id);
+        MagicBag existingMagicBag = baseMapper.selectById(id);
         if (existingMagicBag == null) {
             throw new RuntimeException("盲盒不存在");
         }
@@ -130,7 +128,7 @@ public class MagicBagServiceImpl implements IMagicBagService {
         
         existingMagicBag.setUpdatedAt(LocalDateTime.now());
         
-        magicBagMapper.updateById(existingMagicBag);
+        baseMapper.updateById(existingMagicBag);
         
         return convertToDto(existingMagicBag);
     }
@@ -138,7 +136,7 @@ public class MagicBagServiceImpl implements IMagicBagService {
     @Override
     @Transactional
     public boolean deleteMagicBag(Integer id) {
-        MagicBag magicBag = magicBagMapper.selectById(id);
+        MagicBag magicBag = baseMapper.selectById(id);
         if (magicBag == null) {
             return false;
         }
@@ -147,7 +145,7 @@ public class MagicBagServiceImpl implements IMagicBagService {
         magicBag.setActive(false);
         magicBag.setUpdatedAt(LocalDateTime.now());
         
-        int result = magicBagMapper.updateById(magicBag);
+        int result = baseMapper.updateById(magicBag);
         return result > 0;
     }
 
