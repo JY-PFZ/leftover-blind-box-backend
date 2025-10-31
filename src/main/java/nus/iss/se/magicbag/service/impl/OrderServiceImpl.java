@@ -11,7 +11,7 @@ import nus.iss.se.magicbag.common.constant.ResultStatus; // 🟢 确保导入 Re
 import nus.iss.se.magicbag.common.exception.BusinessException;
 import nus.iss.se.magicbag.dto.*;
 import nus.iss.se.magicbag.entity.*;
-import nus.iss.se.magicbag.interfacemethods.CartInterface;
+import nus.iss.se.magicbag.service.ICartService;
 import nus.iss.se.magicbag.mapper.*;
 import nus.iss.se.magicbag.service.IOrderService;
 import org.springframework.beans.BeanUtils;
@@ -25,7 +25,6 @@ import java.time.ZoneId; // 🟢 导入 ZoneId
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.UUID;
 import java.util.ArrayList;
 
 
@@ -40,7 +39,7 @@ public class OrderServiceImpl implements IOrderService {
     private final MagicBagMapper magicBagMapper;
     private final MerchantMapper merchantMapper;
     private final OrderItemMapper orderItemMapper;
-    private final CartInterface cartService;
+    private final ICartService cartService;
 
     // --- getOrders, getOrderDetail, updateOrderStatus, cancelOrder, verifyOrder, getOrderStats ---
     // --- buildOrderDetailResponse, convertToVerificationDto 保持不变 (省略) ---

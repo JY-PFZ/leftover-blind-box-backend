@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.io.IOException;
 import java.util.Objects;
 
 @Slf4j
@@ -16,6 +17,14 @@ import java.util.Objects;
 public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Result<Void>> handle(Exception e) {
+        log.error(ExceptionUtils.getStackTrace(e));
+        return ResponseEntity
+                .badRequest()
+                .body(Result.error(ResultStatus.FAIL,e.getMessage()));
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<Result<Void>> handle(IOException e) {
         log.error(ExceptionUtils.getStackTrace(e));
         return ResponseEntity
                 .badRequest()

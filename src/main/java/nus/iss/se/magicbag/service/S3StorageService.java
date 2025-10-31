@@ -17,11 +17,13 @@ public class S3StorageService {
 
     private final S3Client s3Client;
     private final String bucketName;
+    private final String servcerUrl;
 
     @Autowired
     public S3StorageService(S3Client s3Client, S3Properties properties) {
         this.s3Client = s3Client;
         this.bucketName = properties.getBucketName();
+        this.servcerUrl = String.format("https://%s.s3.%s.amazonaws.com",properties.getBucketName(),properties.getRegion());
     }
 
     /**
@@ -30,13 +32,14 @@ public class S3StorageService {
      * @param key      S3 对象键（如 "folder/file.xlsx"）
      * @param filePath 本地文件路径
      */
-    public void upload(String key, Path filePath) {
+    public String upload(String key, Path filePath) {
         PutObjectRequest putRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
                 .build();
 
         s3Client.putObject(putRequest, RequestBody.fromFile(filePath));
+        return servcerUrl+"/"+key;
     }
 
     /**

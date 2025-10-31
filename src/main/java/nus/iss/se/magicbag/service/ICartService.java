@@ -1,14 +1,12 @@
-package nus.iss.se.magicbag.interfacemethods;
+package nus.iss.se.magicbag.service;
 
 import java.util.List;
 
 import nus.iss.se.magicbag.dto.CartDto;
 import nus.iss.se.magicbag.dto.CartItemDto;
-import nus.iss.se.magicbag.entity.Cart;
-import nus.iss.se.magicbag.entity.CartItem;
 
 
-public interface CartInterface {
+public interface ICartService {
     CartDto createCart(Integer userId);
     CartDto getActiveCart(Integer userId);
     CartDto addItemToCart(Integer userId, Integer magicbagId, int quantity);

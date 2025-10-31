@@ -1,12 +1,13 @@
 package nus.iss.se.magicbag.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import lombok.RequiredArgsConstructor;
 import nus.iss.se.magicbag.dto.CartDto;
 import nus.iss.se.magicbag.dto.CartItemDto;
 import nus.iss.se.magicbag.entity.Cart;
 import nus.iss.se.magicbag.entity.CartItem;
 import nus.iss.se.magicbag.entity.MagicBag;
-import nus.iss.se.magicbag.interfacemethods.CartInterface;
+import nus.iss.se.magicbag.service.ICartService;
 import nus.iss.se.magicbag.mapper.CartItemMapper;
 import nus.iss.se.magicbag.mapper.CartMapper;
 import nus.iss.se.magicbag.mapper.MagicBagMapper;
@@ -27,16 +28,11 @@ import java.util.stream.Collectors;
  * 替代了所有手写的、可能出错的 SQL 查询。
  */
 @Service
-public class CartImpl implements CartInterface {
-
-    @Autowired
-    private CartMapper cartMapper;
-
-    @Autowired
-    private CartItemMapper cartItemMapper;
-
-    @Autowired
-    private MagicBagMapper magicBagMapper;
+@RequiredArgsConstructor
+public class CartServiceImpl implements ICartService {
+    private final CartMapper cartMapper;
+    private final CartItemMapper cartItemMapper;
+    private final MagicBagMapper magicBagMapper;
 
     @Override
     public CartDto createCart(Integer userId) {

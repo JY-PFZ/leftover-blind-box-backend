@@ -1,13 +1,16 @@
 package nus.iss.se.magicbag.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import nus.iss.se.magicbag.dto.MagicBagCreateDto;
 import nus.iss.se.magicbag.dto.MagicBagDto;
 import nus.iss.se.magicbag.dto.MagicBagListResponse;
 import nus.iss.se.magicbag.dto.MagicBagUpdateDto;
+import nus.iss.se.magicbag.entity.MagicBag;
+import nus.iss.se.magicbag.entity.User;
 
 import java.util.List;
 
-public interface IMagicBagService {
+public interface IMagicBagService extends IService<MagicBag> {
     
     /**
      * 获取所有盲盒列表（分页）
