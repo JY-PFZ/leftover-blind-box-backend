@@ -13029,3 +13029,68 @@ java.lang.InterruptedException: null
 2025-11-04T16:07:12.683+08:00  INFO 34972 --- [magic-bag-mono] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
 2025-11-04T16:07:12.696+08:00  INFO 34972 --- [magic-bag-mono] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
 2025-11-04T16:07:12.698+08:00  INFO 34972 --- [magic-bag-mono] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-11-04T16:07:15.125+08:00  INFO 27952 --- [magic-bag-mono] [main] n.i.s.LeftoverBlindBoxBackendApplication : Starting LeftoverBlindBoxBackendApplication using Java 21.0.8 with PID 27952 (P:\NUS\leftover-blind-box-backend\target\classes started by cxy04 in P:\NUS\leftover-blind-box-backend)
+2025-11-04T16:07:15.126+08:00  INFO 27952 --- [magic-bag-mono] [main] n.i.s.LeftoverBlindBoxBackendApplication : The following 1 profile is active: "dev"
+2025-11-04T16:07:15.146+08:00  INFO 27952 --- [magic-bag-mono] [main] c.a.c.n.c.NacosConfigDataLoader          : [Nacos Config] Load config[dataId=shared-config.yaml, group=DEFAULT_GROUP] success
+2025-11-04T16:07:15.147+08:00  INFO 27952 --- [magic-bag-mono] [main] c.a.c.n.c.NacosConfigDataLoader          : [Nacos Config] Load config[dataId=magic-bag-mono-dev.yaml, group=magic-bag-mono] success
+2025-11-04T16:07:15.729+08:00  INFO 27952 --- [magic-bag-mono] [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2025-11-04T16:07:15.730+08:00  INFO 27952 --- [magic-bag-mono] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2025-11-04T16:07:15.754+08:00  INFO 27952 --- [magic-bag-mono] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 15 ms. Found 0 Redis repository interfaces.
+2025-11-04T16:07:15.862+08:00  INFO 27952 --- [magic-bag-mono] [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=e5e5544f-0b74-3275-84da-ef4dad31e28f
+2025-11-04T16:07:16.172+08:00  INFO 27952 --- [magic-bag-mono] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 10015 (http)
+2025-11-04T16:07:16.179+08:00  INFO 27952 --- [magic-bag-mono] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-11-04T16:07:16.179+08:00  INFO 27952 --- [magic-bag-mono] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.44]
+2025-11-04T16:07:16.242+08:00  INFO 27952 --- [magic-bag-mono] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-11-04T16:07:16.242+08:00  INFO 27952 --- [magic-bag-mono] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1094 ms
+2025-11-04T16:07:16.674+08:00  INFO 27952 --- [magic-bag-mono] [main] nus.iss.se.magicbag.util.RsaUtil         : use existed RSA private key: .keys\private-key.pem
+2025-11-04T16:07:16.730+08:00  INFO 27952 --- [magic-bag-mono] [main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name myUserDetailsService
+2025-11-04T16:07:17.654+08:00  INFO 27952 --- [magic-bag-mono] [main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2025-11-04T16:07:17.813+08:00  INFO 27952 --- [magic-bag-mono] [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2025-11-04T16:07:18.193+08:00  INFO 27952 --- [magic-bag-mono] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 10015 (http) with context path '/'
+2025-11-04T16:07:18.205+08:00  INFO 27952 --- [magic-bag-mono] [main] n.i.s.LeftoverBlindBoxBackendApplication : Started LeftoverBlindBoxBackendApplication in 4.091 seconds (process running for 4.585)
+2025-11-04T16:07:18.215+08:00  INFO 27952 --- [magic-bag-mono] [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=shared-config.yaml, group=DEFAULT_GROUP
+2025-11-04T16:07:18.216+08:00  INFO 27952 --- [magic-bag-mono] [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=magic-bag-mono-dev.yaml, group=magic-bag-mono
+2025-11-04T16:07:18.443+08:00  INFO 27952 --- [magic-bag-mono] [RMI TCP Connection(2)-192.168.10.158] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-11-04T16:07:18.444+08:00  INFO 27952 --- [magic-bag-mono] [RMI TCP Connection(2)-192.168.10.158] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-11-04T16:07:18.444+08:00  INFO 27952 --- [magic-bag-mono] [RMI TCP Connection(3)-192.168.10.158] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-11-04T16:07:18.445+08:00  INFO 27952 --- [magic-bag-mono] [RMI TCP Connection(2)-192.168.10.158] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2025-11-04T16:07:18.610+08:00  INFO 27952 --- [magic-bag-mono] [RMI TCP Connection(3)-192.168.10.158] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@a137544
+2025-11-04T16:07:18.612+08:00  INFO 27952 --- [magic-bag-mono] [RMI TCP Connection(3)-192.168.10.158] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-11-04T16:07:42.950+08:00 ERROR 27952 --- [magic-bag-mono] [http-nio-10015-exec-9] n.i.s.m.config.SecurityChainConfig       : Authentication failed - Path: /api/merchants/register, Has Token: true, Error: InsufficientAuthenticationException
+2025-11-04T16:08:28.991+08:00  INFO 27952 --- [magic-bag-mono] [http-nio-10015-exec-5] n.i.s.m.s.impl.MerchantServiceImpl       : 商家注册申请已提交，用户ID: 29, 商家ID: 42
+2025-11-04T16:09:21.598+08:00 ERROR 27952 --- [magic-bag-mono] [nacos.publisher-com.alibaba.nacos.client.config.impl.ConfigFuzzyWatchNotifyEvent] c.a.nacos.common.notify.NotifyCenter     : Event listener exception : 
+
+java.lang.InterruptedException: null
+	at java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1727) ~[na:na]
+	at java.base/java.util.concurrent.ArrayBlockingQueue.take(ArrayBlockingQueue.java:420) ~[na:na]
+	at com.alibaba.nacos.common.notify.DefaultPublisher.openEventHandler(DefaultPublisher.java:111) ~[nacos-client-3.0.3.jar:na]
+	at com.alibaba.nacos.common.notify.DefaultPublisher.run(DefaultPublisher.java:95) ~[nacos-client-3.0.3.jar:na]
+
+2025-11-04T16:09:21.598+08:00 ERROR 27952 --- [magic-bag-mono] [nacos.publisher-com.alibaba.nacos.client.config.impl.ConfigFuzzyWatchLoadEvent] c.a.nacos.common.notify.NotifyCenter     : Event listener exception : 
+
+java.lang.InterruptedException: null
+	at java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1727) ~[na:na]
+	at java.base/java.util.concurrent.ArrayBlockingQueue.take(ArrayBlockingQueue.java:420) ~[na:na]
+	at com.alibaba.nacos.common.notify.DefaultPublisher.openEventHandler(DefaultPublisher.java:111) ~[nacos-client-3.0.3.jar:na]
+	at com.alibaba.nacos.common.notify.DefaultPublisher.run(DefaultPublisher.java:95) ~[nacos-client-3.0.3.jar:na]
+
+2025-11-04T16:09:21.598+08:00 ERROR 27952 --- [magic-bag-mono] [nacos.publisher-com.alibaba.nacos.common.notify.SlowEvent] c.a.nacos.common.notify.NotifyCenter     : Event listener exception : 
+
+java.lang.InterruptedException: null
+	at java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1727) ~[na:na]
+	at java.base/java.util.concurrent.ArrayBlockingQueue.take(ArrayBlockingQueue.java:420) ~[na:na]
+	at com.alibaba.nacos.common.notify.DefaultPublisher.openEventHandler(DefaultPublisher.java:111) ~[nacos-client-3.0.3.jar:na]
+	at com.alibaba.nacos.common.notify.DefaultPublisher.run(DefaultPublisher.java:95) ~[nacos-client-3.0.3.jar:na]
+
+2025-11-04T16:09:21.601+08:00  INFO 27952 --- [magic-bag-mono] [SpringApplicationShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-11-04T16:09:21.598+08:00 ERROR 27952 --- [magic-bag-mono] [nacos.publisher-com.alibaba.nacos.common.ability.AbstractAbilityControlManager$AbilityUpdateEvent] c.a.nacos.common.notify.NotifyCenter     : Event listener exception : 
+
+java.lang.InterruptedException: null
+	at java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1727) ~[na:na]
+	at java.base/java.util.concurrent.ArrayBlockingQueue.take(ArrayBlockingQueue.java:420) ~[na:na]
+	at com.alibaba.nacos.common.notify.DefaultPublisher.openEventHandler(DefaultPublisher.java:111) ~[nacos-client-3.0.3.jar:na]
+	at com.alibaba.nacos.common.notify.DefaultPublisher.run(DefaultPublisher.java:95) ~[nacos-client-3.0.3.jar:na]
+
+2025-11-04T16:09:21.605+08:00  INFO 27952 --- [magic-bag-mono] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-11-04T16:09:21.617+08:00  INFO 27952 --- [magic-bag-mono] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-11-04T16:09:21.619+08:00  INFO 27952 --- [magic-bag-mono] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
