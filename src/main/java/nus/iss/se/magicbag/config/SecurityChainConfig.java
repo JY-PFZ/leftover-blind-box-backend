@@ -59,6 +59,8 @@ public class SecurityChainConfig {
                         .requestMatchers("/webjars/**").permitAll()
                         .requestMatchers("/api/product/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS).permitAll()
+                        .requestMatchers("/api/payment/success").permitAll()
+                        .requestMatchers("/api/payment/cancel").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)

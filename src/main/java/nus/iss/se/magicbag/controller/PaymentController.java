@@ -82,7 +82,6 @@ public class PaymentController {
      */
     @GetMapping("/success")
     @Operation(summary = "Payment success page")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<PaymentResponseDto> paymentSuccess(
             @RequestParam Integer orderId,
             @RequestParam(required = false) String session_id) {
@@ -103,7 +102,6 @@ public class PaymentController {
 
     @GetMapping("/cancel")
     @Operation(summary = "Payment cancel page")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<PaymentResponseDto> paymentCancel(@RequestParam Integer orderId) {
         log.info("Payment cancelled for order {}", orderId);
         
