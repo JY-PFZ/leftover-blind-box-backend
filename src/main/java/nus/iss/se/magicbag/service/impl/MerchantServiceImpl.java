@@ -9,6 +9,7 @@ import nus.iss.se.magicbag.auth.common.UserContext;
 import nus.iss.se.magicbag.auth.common.UserContextHolder;
 import nus.iss.se.magicbag.common.constant.TaskStatus;
 import nus.iss.se.magicbag.dto.MerchantDto;
+import nus.iss.se.magicbag.dto.MerchantRegisterDto;
 import nus.iss.se.magicbag.dto.MerchantUpdateDto;
 import nus.iss.se.magicbag.dto.event.MerchantProcessedEvent;
 import nus.iss.se.magicbag.dto.event.MerchantRegisterEvent;
@@ -20,8 +21,6 @@ import nus.iss.se.magicbag.service.IMerchantService;
 import nus.iss.se.magicbag.common.exception.BusinessException;
 import nus.iss.se.magicbag.common.constant.ResultStatus;
 import org.springframework.beans.BeanUtils;
-// import org.springframework.beans.factory.annotation.Qualifier; // 移除未使用的 import
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -173,13 +172,16 @@ public class MerchantServiceImpl implements IMerchantService {
 
     @Override
     @Transactional
-    public void registerMerchant(MerchantUpdateDto dto) {
+    public void registerMerchant(MerchantRegisterDto dto) {
         // 1. 获取当前用户ID
         UserContext currentUser = userContextHolder.getCurrentUser();
+        log.debug("MerchantServiceImpl.registerMerchant - UserContext: {}", currentUser);
         if (currentUser == null) {
+            log.error("MerchantServiceImpl.registerMerchant - UserContext is null, user not logged in");
             throw new BusinessException(ResultStatus.USER_NOT_LOGGED_IN, "用户未登录");
         }
         Integer currentUserId = currentUser.getId();
+        log.debug("MerchantServiceImpl.registerMerchant - Current userId: {}", currentUserId);
 
         // 2. 检查用户是否已有商家身份（一对一关系）
         Merchant existingMerchant = merchantMapper.selectOne(
