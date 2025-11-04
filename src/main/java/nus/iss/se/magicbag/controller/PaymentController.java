@@ -12,6 +12,7 @@ import nus.iss.se.magicbag.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -81,6 +82,7 @@ public class PaymentController {
      */
     @GetMapping("/success")
     @Operation(summary = "Payment success page")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<PaymentResponseDto> paymentSuccess(
             @RequestParam Integer orderId,
             @RequestParam(required = false) String session_id) {
@@ -101,6 +103,7 @@ public class PaymentController {
 
     @GetMapping("/cancel")
     @Operation(summary = "Payment cancel page")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<PaymentResponseDto> paymentCancel(@RequestParam Integer orderId) {
         log.info("Payment cancelled for order {}", orderId);
         
