@@ -12,7 +12,6 @@ import nus.iss.se.magicbag.common.constant.ResultStatus; // 🟢 确保导入
 import nus.iss.se.magicbag.common.exception.BusinessException; // 🟢 确保导入
 import nus.iss.se.magicbag.dto.MerchantDto;
 import nus.iss.se.magicbag.dto.MerchantLocationDto;
-import nus.iss.se.magicbag.dto.MerchantRegisterDto;
 import nus.iss.se.magicbag.dto.MerchantUpdateDto;
 import nus.iss.se.magicbag.service.IMerchantService;
 import nus.iss.se.magicbag.service.MerchantLocationService;
@@ -81,7 +80,7 @@ public class MerchantController {
 
     @PostMapping("/register")
     @Operation(summary = "注册商家信息", description = "用户注册自己的店铺信息")
-    public Result<Void> registerMerchantProfile(@RequestBody @Valid MerchantRegisterDto merchantDto) {
+    public Result<Void> registerMerchantProfile(@RequestBody @Valid MerchantUpdateDto merchantDto) {
         merchantService.registerMerchant(merchantDto);
         return Result.success();
     }

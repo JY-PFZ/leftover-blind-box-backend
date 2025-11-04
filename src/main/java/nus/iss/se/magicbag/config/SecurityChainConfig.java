@@ -1,7 +1,6 @@
 package nus.iss.se.magicbag.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +41,6 @@ public class SecurityChainConfig {
     private final UserContextHolder userContextHolder;
     private final UserDetailsService userDetailsService;
     private final TokenCacheService tokenCacheService;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -53,61 +51,33 @@ public class SecurityChainConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        // 公开访问的路径（按优先级顺序）
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // 修正：改为 /api/auth/**
                         .requestMatchers("/api/user/register").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/swagger-resources/**").permitAll()
                         .requestMatchers("/webjars/**").permitAll()
                         .requestMatchers("/api/product/**").permitAll()
-                        .requestMatchers("/error").permitAll()  // Spring Boot 错误处理路径
                         .requestMatchers(HttpMethod.OPTIONS).permitAll()
-                        // 其他所有请求需要认证
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) -> handleAuthenticationFail(request, response, authException))
+                        .authenticationEntryPoint((request, response, authException) -> handleAuthenticationFail(response,authException))
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, userDetailsService, tokenCacheService, userContextHolder),
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    private void handleAuthenticationFail(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) throws IOException {
-        String requestPath = request.getRequestURI();
-        
-
-        if (requestPath.startsWith("/api/auth/")) {
-            log.warn("Authentication failed on public path: {} - This should not happen!", requestPath);
-            response.setStatus(HttpStatus.BAD_REQUEST.value());
-            response.setCharacterEncoding("UTF-8");
-            response.setContentType("application/json;charset=UTF-8");
-            String json = objectMapper.writeValueAsString(Result.error(ResultStatus.FAIL, "Request failed. Please check your credentials."));
-            response.getWriter().write(json);
-            return;
-        }
-        
-        // 对于需要认证的路径，返回认证错误
+    private void handleAuthenticationFail(HttpServletResponse response, AuthenticationException e) throws IOException {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json;charset=UTF-8");
 
-        String authHeader = request.getHeader("Authorization");
-        boolean hasToken = authHeader != null && authHeader.startsWith("Bearer ");
-        
-        log.error("Authentication failed - Path: {}, Has Token: {}, Error: {}", 
-                requestPath, hasToken, e.getClass().getSimpleName());
-        
-        String errorMessage = "Please login first";
-        if (!hasToken) {
-            errorMessage = "Please login first: Token missing in Authorization header";
-        } else if (authHeader != null) {
-            errorMessage = "Please login first: Invalid or expired token";
-        }
-        
-        String json = objectMapper.writeValueAsString(Result.error(ResultStatus.FAIL, errorMessage));
+        log.error("Please login first: {}", ExceptionUtils.getStackTrace(e));
+        String json = objectMapper.writeValueAsString(Result.error(ResultStatus.FAIL,"Please login first"));
         response.getWriter().write(json);
     }
 
