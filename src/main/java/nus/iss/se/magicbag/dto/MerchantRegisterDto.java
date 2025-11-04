@@ -17,8 +17,8 @@ public class MerchantRegisterDto {
     @Schema(description = "商家名称", example = "美味餐厅", required = true)
     private String name;
     
-    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    @Schema(description = "联系手机号", example = "13800138000")
+    @Pattern(regexp = "^$|^[89]\\d{7}$", message = "手机号格式不正确（新加坡8位手机号，以8或9开头）")
+    @Schema(description = "联系手机号（可选）", example = "81234567")
     private String phone;
     
     @NotBlank(message = "地址不能为空")
