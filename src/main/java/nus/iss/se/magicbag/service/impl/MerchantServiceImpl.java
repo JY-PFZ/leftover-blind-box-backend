@@ -9,7 +9,6 @@ import nus.iss.se.magicbag.auth.common.UserContext;
 import nus.iss.se.magicbag.auth.common.UserContextHolder;
 import nus.iss.se.magicbag.common.constant.TaskStatus;
 import nus.iss.se.magicbag.dto.MerchantDto;
-import nus.iss.se.magicbag.dto.MerchantRegisterDto;
 import nus.iss.se.magicbag.dto.MerchantUpdateDto;
 import nus.iss.se.magicbag.dto.event.MerchantProcessedEvent;
 import nus.iss.se.magicbag.dto.event.MerchantRegisterEvent;
@@ -18,6 +17,8 @@ import nus.iss.se.magicbag.entity.User;
 import nus.iss.se.magicbag.mapper.MerchantMapper;
 import nus.iss.se.magicbag.mapper.UserMapper;
 import nus.iss.se.magicbag.service.IMerchantService;
+import nus.iss.se.magicbag.auth.service.UserCacheService;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import nus.iss.se.magicbag.common.exception.BusinessException;
 import nus.iss.se.magicbag.common.constant.ResultStatus;
 import org.springframework.beans.BeanUtils;
@@ -41,6 +42,7 @@ public class MerchantServiceImpl implements IMerchantService {
     private final UserMapper userMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final UserContextHolder userContextHolder;
+    private final UserCacheService userCacheService;
 
 
     /**
@@ -172,7 +174,7 @@ public class MerchantServiceImpl implements IMerchantService {
 
     @Override
     @Transactional
-    public void registerMerchant(MerchantRegisterDto dto) {
+    public void registerMerchant(MerchantUpdateDto dto) {
         // 1. 获取当前用户ID
         UserContext currentUser = userContextHolder.getCurrentUser();
         log.debug("MerchantServiceImpl.registerMerchant - UserContext: {}", currentUser);
@@ -252,6 +254,29 @@ public class MerchantServiceImpl implements IMerchantService {
                 merchant.setUpdatedAt(new Date());
                 merchant.setApprovedAt(new Date());
                 merchantMapper.updateById(merchant);
+
+                // 3. 更新用户角色为 MERCHANT
+                Integer userId = event.userId().intValue();
+                User user = userMapper.selectById(userId);
+                if (user != null) {
+                    LambdaUpdateWrapper<User> userWrapper = new LambdaUpdateWrapper<>();
+                    userWrapper.eq(User::getId, userId)
+                            .set(User::getRole, "MERCHANT")
+                            .set(User::getUpdatedAt, new Date());
+                    userMapper.update(null, userWrapper);
+                    
+                    // 重新获取更新后的用户信息，用于更新缓存
+                    User updatedUser = userMapper.selectById(userId);
+                    if (updatedUser != null) {
+                        UserContext userContext = new UserContext();
+                        BeanUtils.copyProperties(updatedUser, userContext);
+                        userCacheService.updateCache(userContext);
+                    }
+                    
+                    log.info("用户角色已更新为商家，用户ID: {}, 用户名: {}", userId, user.getUsername());
+                } else {
+                    log.warn("未找到用户ID为{}的用户记录，无法更新角色", userId);
+                }
 
                 log.info("商家注册申请已通过，用户ID: {}, 商家ID: {}", event.userId(), merchant.getId());
 
