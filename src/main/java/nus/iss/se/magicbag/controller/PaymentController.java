@@ -78,7 +78,7 @@ public class PaymentController {
 
     /**
      * 获取支付成功页面的提示
-     * 注意:这个只是展示用,真正的状态更新在 /verify 接口
+     * 注意:这个只是展示用,真正的状态更新在 /verify
      */
     @GetMapping("/success")
     @Operation(summary = "Payment success page")
