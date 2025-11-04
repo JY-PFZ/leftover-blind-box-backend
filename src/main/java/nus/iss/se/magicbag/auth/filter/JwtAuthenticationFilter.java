@@ -29,7 +29,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain chain)
             throws ServletException, IOException {
-
+    	String path = request.getRequestURI();
+        if (path.equals("/api/payment/success") || path.equals("/api/payment/cancel")) {
+            chain.doFilter(request, response);
+            return;
+        }
         String token = BaseUtil.getTokenFromRequest(request);
         if (token != null && isValidToken(token)) {
             String username = jwtUtil.getClaims(token).getSubject();
