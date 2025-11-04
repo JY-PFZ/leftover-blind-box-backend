@@ -3,6 +3,7 @@ package nus.iss.se.magicbag.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import nus.iss.se.magicbag.auth.common.UserContext;
 import nus.iss.se.magicbag.dto.MerchantDto;
+import nus.iss.se.magicbag.dto.MerchantRegisterDto;
 import nus.iss.se.magicbag.dto.MerchantUpdateDto;
 import nus.iss.se.magicbag.dto.event.MerchantProcessedEvent;
 
@@ -59,7 +60,7 @@ public interface IMerchantService {
      */
     IPage<MerchantDto> sortedMerchantsByScore(Integer current, Integer size,  Integer minScore);
 
-    void registerMerchant(MerchantUpdateDto dto);
+    void registerMerchant(MerchantRegisterDto dto);
 
     void handleRegisterResult(MerchantProcessedEvent event);
 }
