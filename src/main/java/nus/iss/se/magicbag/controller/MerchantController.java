@@ -12,6 +12,7 @@ import nus.iss.se.magicbag.common.constant.ResultStatus; // 🟢 确保导入
 import nus.iss.se.magicbag.common.exception.BusinessException; // 🟢 确保导入
 import nus.iss.se.magicbag.dto.MerchantDto;
 import nus.iss.se.magicbag.dto.MerchantLocationDto;
+import nus.iss.se.magicbag.dto.MerchantRegisterDto;
 import nus.iss.se.magicbag.dto.MerchantUpdateDto;
 import nus.iss.se.magicbag.service.IMerchantService;
 import nus.iss.se.magicbag.service.MerchantLocationService;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/merchant")
+@RequestMapping("/api/merchants")
 @CrossOrigin(origins = "*") // 注意：生产环境中通常不建议使用 "*"
 @RequiredArgsConstructor
 @Tag(name = "Merchant API", description = "商家管理服务")
@@ -80,7 +81,7 @@ public class MerchantController {
 
     @PostMapping("/register")
     @Operation(summary = "注册商家信息", description = "用户注册自己的店铺信息")
-    public Result<Void> registerMerchantProfile(@RequestBody @Valid MerchantUpdateDto merchantDto) {
+    public Result<Void> registerMerchantProfile(@RequestBody @Valid MerchantRegisterDto merchantDto) {
         merchantService.registerMerchant(merchantDto);
         return Result.success();
     }
