@@ -212,23 +212,36 @@ public class MerchantServiceImpl implements IMerchantService {
         if (existingMerchant != null) {
             merchantMapper.updateById(merchant);
         } else {
+            String merchantName = merchant.getName();
+            
             merchantMapper.insert(merchant);
-            // 如果 MyBatis-Plus 没有自动填充 id，通过 user_id 重新查询获取
+            
+            // 如果 MyBatis-Plus 没有自动填充 id，直接使用 LAST_INSERT_ID() 获取
             if (merchant.getId() == null) {
-                log.warn("商家插入后 id 未自动填充，通过 user_id 重新查询，用户ID: {}", currentUserId);
-                Merchant insertedMerchant = merchantMapper.selectOne(
-                    new QueryWrapper<Merchant>()
-                        .eq("user_id", currentUserId)
-                        .eq("status", "pending")
-                        .orderByDesc("created_at")
-                        .last("LIMIT 1")
-                );
-                if (insertedMerchant != null && insertedMerchant.getId() != null) {
-                    merchant.setId(insertedMerchant.getId());
-                    log.info("成功获取商家ID: {}", merchant.getId());
+                log.warn("商家插入后 id 未自动填充，使用 LAST_INSERT_ID() 获取，用户ID: {}", currentUserId);
+                Integer lastInsertId = merchantMapper.getLastInsertId();
+                if (lastInsertId != null && lastInsertId > 0) {
+                    merchant.setId(lastInsertId);
+                    log.info("通过 LAST_INSERT_ID() 成功获取商家ID: {}", merchant.getId());
                 } else {
-                    log.error("无法通过 user_id 查询到新插入的商家记录，用户ID: {}", currentUserId);
-                    throw new BusinessException(ResultStatus.FAIL, "商家注册失败，无法生成商家ID");
+                    // 如果 LAST_INSERT_ID() 也失败，尝试通过查询获取
+                    log.warn("LAST_INSERT_ID() 失败，尝试通过查询获取，用户ID: {}, 商家名称: {}", currentUserId, merchantName);
+                    Merchant insertedMerchant = merchantMapper.selectOne(
+                        new QueryWrapper<Merchant>()
+                            .eq("user_id", currentUserId)
+                            .eq("name", merchantName)
+                            .eq("status", "pending")
+                            .orderByDesc("created_at")
+                            .last("LIMIT 1")
+                    );
+                    
+                    if (insertedMerchant != null && insertedMerchant.getId() != null) {
+                        merchant.setId(insertedMerchant.getId());
+                        log.info("通过查询成功获取商家ID: {}", merchant.getId());
+                    } else {
+                        log.error("无法获取新插入的商家ID，用户ID: {}, 商家名称: {}", currentUserId, merchantName);
+                        throw new BusinessException(ResultStatus.FAIL, "商家注册失败，无法生成商家ID");
+                    }
                 }
             }
         }

@@ -1,5 +1,6 @@
 package nus.iss.se.magicbag.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField; // 🔴 导入注解
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -11,7 +12,7 @@ import java.util.Date;
 @Data
 @TableName("merchants")
 public class Merchant {
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Integer id;
     // 🟢 新增 user_id 字段，用于关联 users 表
     private Integer userId;

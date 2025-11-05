@@ -27,6 +27,9 @@ public interface MerchantMapper extends BaseMapper<Merchant> {
 
     @Select("SELECT id,name,score FROM merchants WHERE status = 'approved' and score >= #{miScore} ORDER BY score DESC")
     IPage<MerchantDto> sortedByScore(IPage<MerchantDto> page, @Param("minScore") Integer minScore);
+
+    @Select("SELECT LAST_INSERT_ID()")
+    Integer getLastInsertId();
 }
 
 
