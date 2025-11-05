@@ -185,6 +185,12 @@ public class MerchantServiceImpl implements IMerchantService {
         }
         Integer currentUserId = currentUser.getId();
         log.debug("MerchantServiceImpl.registerMerchant - Current userId: {}", currentUserId);
+        
+        // 强制验证 currentUserId 不为 null
+        if (currentUserId == null || currentUserId <= 0) {
+            log.error("currentUserId 无效，用户ID: {}", currentUserId);
+            throw new BusinessException(ResultStatus.USER_NOT_LOGGED_IN, "用户ID无效，请重新登录");
+        }
 
         // 2. 检查用户是否已有商家身份（一对一关系）
         Merchant existingMerchant = merchantMapper.selectOne(
@@ -203,10 +209,28 @@ public class MerchantServiceImpl implements IMerchantService {
 
         // 3. 复制DTO数据到实体对象
         BeanUtils.copyProperties(dto, merchant);
-        merchant.setUserId(currentUserId);
+        // 强制设置 userId 和 id，确保不会被 DTO 覆盖
+        merchant.setUserId(currentUserId); // 强制设置，currentUserId 已确保不为 null
+        // 如果是新记录，确保 id 为 null（由数据库自动生成）
+        if (existingMerchant == null) {
+            merchant.setId(null);
+        }
         merchant.setStatus("pending"); // 设置为待处理状态
         merchant.setCreatedAt(new Date());
         merchant.setUpdatedAt(new Date());
+        
+        // 强制验证 userId 已正确设置（多重验证）
+        Integer verifyUserId = merchant.getUserId();
+        if (verifyUserId == null || verifyUserId <= 0) {
+            log.error("userId 设置失败或无效，currentUserId: {}, merchant.getUserId(): {}", currentUserId, verifyUserId);
+            // 强制重新设置
+            merchant.setUserId(currentUserId);
+            verifyUserId = merchant.getUserId();
+            if (verifyUserId == null || verifyUserId <= 0) {
+                throw new BusinessException(ResultStatus.FAIL, "用户ID设置失败，无法继续注册");
+            }
+            log.warn("强制重新设置 userId 成功: {}", verifyUserId);
+        }
 
         // 4. 保存或更新商家信息
         if (existingMerchant != null) {
@@ -272,15 +296,29 @@ public class MerchantServiceImpl implements IMerchantService {
                 // 如果所有方法都失败，使用临时ID（使用userId作为占位符，或者使用0）
                 // 注意：这只是一个临时解决方案，事件监听器可能需要处理这种情况
                 log.error("所有方法都无法获取商家ID，使用临时ID，用户ID: {}", currentUserId);
-                // 使用 userId 作为临时 merchantId（因为 merchantId 是 Long 类型，userId 也是 Integer）
-                merchantId = currentUserId; // 临时使用 userId 作为 merchantId
+                
+                // 确保 merchantId 不为 null：如果 currentUserId 不为 null 就用它，否则使用 0 作为占位符
+                if (currentUserId != null && currentUserId > 0) {
+                    merchantId = currentUserId; // 临时使用 userId 作为 merchantId
+                } else {
+                    merchantId = 0; // 如果 userId 也是 null，使用 0 作为占位符
+                    log.warn("⚠️ userId 也为 null，使用 0 作为临时 merchantId");
+                }
+                
                 merchant.setId(merchantId);
-                log.warn("⚠️ 使用临时ID (userId) 作为 merchantId: {}", merchantId);
+                log.warn("⚠️ 使用临时ID作为 merchantId: {}", merchantId);
             }
         }
         
+        // 确保 userId 不为 null（currentUserId 已在前面验证过不为 null）
+        Integer userId = merchant.getUserId();
+        if (userId == null || userId <= 0) {
+            log.error("发布事件时 userId 为空或无效，强制使用 currentUserId: {}", currentUserId);
+            userId = currentUserId; // currentUserId 已确保不为 null 且 > 0
+        }
+        
         MerchantRegisterEvent event = new MerchantRegisterEvent(
-                (long) merchant.getUserId(),
+                (long) userId,
                 (long) merchantId,
                 merchant.getName(),
                 merchant.getPhone(),
