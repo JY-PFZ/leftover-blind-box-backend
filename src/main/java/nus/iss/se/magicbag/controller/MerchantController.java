@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/merchants")
+@RequestMapping("/api/merchant")
 @CrossOrigin(origins = "*") // 注意：生产环境中通常不建议使用 "*"
 @RequiredArgsConstructor
 @Tag(name = "Merchant API", description = "商家管理服务")
