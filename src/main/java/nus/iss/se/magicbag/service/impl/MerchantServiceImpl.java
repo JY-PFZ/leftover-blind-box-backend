@@ -213,12 +213,37 @@ public class MerchantServiceImpl implements IMerchantService {
             merchantMapper.updateById(merchant);
         } else {
             merchantMapper.insert(merchant);
+            // 如果 MyBatis-Plus 没有自动填充 id，通过 user_id 重新查询获取
+            if (merchant.getId() == null) {
+                log.warn("商家插入后 id 未自动填充，通过 user_id 重新查询，用户ID: {}", currentUserId);
+                Merchant insertedMerchant = merchantMapper.selectOne(
+                    new QueryWrapper<Merchant>()
+                        .eq("user_id", currentUserId)
+                        .eq("status", "pending")
+                        .orderByDesc("created_at")
+                        .last("LIMIT 1")
+                );
+                if (insertedMerchant != null && insertedMerchant.getId() != null) {
+                    merchant.setId(insertedMerchant.getId());
+                    log.info("成功获取商家ID: {}", merchant.getId());
+                } else {
+                    log.error("无法通过 user_id 查询到新插入的商家记录，用户ID: {}", currentUserId);
+                    throw new BusinessException(ResultStatus.FAIL, "商家注册失败，无法生成商家ID");
+                }
+            }
         }
 
         // 5. 发布商家注册事件
+        // 确保 merchantId 不为 null
+        Integer merchantId = merchant.getId();
+        if (merchantId == null) {
+            log.error("商家ID为空，无法发布注册事件，用户ID: {}", currentUserId);
+            throw new BusinessException(ResultStatus.FAIL, "商家ID不能为空");
+        }
+        
         MerchantRegisterEvent event = new MerchantRegisterEvent(
                 (long) merchant.getUserId(),
-                (long) merchant.getId(),
+                (long) merchantId,
                 merchant.getName(),
                 merchant.getPhone(),
                 merchant.getAddress(),
@@ -228,7 +253,7 @@ public class MerchantServiceImpl implements IMerchantService {
         );
         eventPublisher.publishEvent(event);
 
-        log.info("商家注册申请已提交，用户ID: {}, 商家ID: {}", currentUserId, merchant.getId());
+        log.info("商家注册申请已提交，用户ID: {}, 商家ID: {}", currentUserId, merchantId);
     }
 
     @Override
