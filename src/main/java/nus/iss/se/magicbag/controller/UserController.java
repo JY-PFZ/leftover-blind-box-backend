@@ -28,7 +28,7 @@ public class UserController {
     @Operation(summary = "ContextHolder test", description = "Test the user context holder whether can fetch the user info or not")
     public Result<String> hello(){
         UserContext currentUser = userContextHolder.getCurrentUser();
-        return Result.success("hello spring security: " + currentUser.toString());
+        return Result.success("hello cicd");
     }
 
     /**
