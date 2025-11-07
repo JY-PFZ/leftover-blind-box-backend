@@ -232,6 +232,25 @@ public class MerchantServiceImpl implements IMerchantService {
             log.warn("强制重新设置 userId 成功: {}", verifyUserId);
         }
 
+        // 3.5. 检查手机号是否已被使用（在插入前检查）
+        if (StringUtils.hasText(merchant.getPhone())) {
+            Merchant existingMerchantWithPhone = merchantMapper.findByPhone(merchant.getPhone());
+            if (existingMerchantWithPhone != null) {
+                // 如果手机号已存在，检查是否属于当前用户
+                if (existingMerchant == null) {
+                    // 新注册场景：手机号已被其他商家使用
+                    log.warn("手机号 {} 已被其他商家使用，用户ID: {}", merchant.getPhone(), currentUserId);
+                    throw new BusinessException(ResultStatus.USER_HAS_EXISTED, "手机号已被其他商家使用");
+                } else if (!Objects.equals(existingMerchantWithPhone.getId(), existingMerchant.getId())) {
+                    // 更新场景：手机号已被其他商家使用
+                    log.warn("手机号 {} 已被其他商家使用，当前商家ID: {}, 已存在商家ID: {}", 
+                            merchant.getPhone(), existingMerchant.getId(), existingMerchantWithPhone.getId());
+                    throw new BusinessException(ResultStatus.USER_HAS_EXISTED, "手机号已被其他商家使用");
+                }
+                // 如果手机号属于当前用户，允许继续（更新场景）
+            }
+        }
+
         // 4. 保存或更新商家信息
         if (existingMerchant != null) {
             merchantMapper.updateById(merchant);
