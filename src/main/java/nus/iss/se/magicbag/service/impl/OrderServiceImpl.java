@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalTime; // 🟢 导入 LocalTime
 import java.time.ZoneId; // 🟢 导入 ZoneId
@@ -43,7 +44,7 @@ public class OrderServiceImpl implements IOrderService {
     private final OrderItemMapper orderItemMapper;
     private final ICartService cartService;
     private final UserContextHolder userContextHolder;
-    private final Random random = new Random();
+    private final SecureRandom random = new SecureRandom();
 
     @Override
     public IPage<OrderDto> getOrders(UserContext currentUser, OrderQueryDto queryDto) {
