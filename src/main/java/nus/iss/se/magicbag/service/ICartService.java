@@ -6,7 +6,7 @@ import nus.iss.se.magicbag.dto.CartDto;
 import nus.iss.se.magicbag.dto.CartItemDto;
 
 
-public interface ICartService {
+public interface ICartService{
     CartDto createCart(Integer userId);
     CartDto getActiveCart(Integer userId);
     CartDto addItemToCart(Integer userId, Integer magicbagId, int quantity);

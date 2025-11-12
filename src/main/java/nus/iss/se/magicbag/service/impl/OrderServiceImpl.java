@@ -1,13 +1,16 @@
 package nus.iss.se.magicbag.service.impl;
 
-// --- 省略了 imports ---
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.auth.common.UserContext;
+import nus.iss.se.magicbag.auth.common.UserContextHolder;
+import nus.iss.se.magicbag.common.constant.OrderStatus;
 import nus.iss.se.magicbag.common.constant.ResultStatus; // 🟢 确保导入 ResultStatus
+import nus.iss.se.magicbag.common.constant.UserRole;
 import nus.iss.se.magicbag.common.exception.BusinessException;
 import nus.iss.se.magicbag.dto.*;
 import nus.iss.se.magicbag.entity.*;
@@ -17,15 +20,14 @@ import nus.iss.se.magicbag.service.IOrderService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime; // 🟢 导入 LocalTime
 import java.time.ZoneId; // 🟢 导入 ZoneId
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.ArrayList;
 
 
 @Slf4j
@@ -40,9 +42,9 @@ public class OrderServiceImpl implements IOrderService {
     private final MerchantMapper merchantMapper;
     private final OrderItemMapper orderItemMapper;
     private final ICartService cartService;
+    private final UserContextHolder userContextHolder;
+    private final Random random = new Random();
 
-    // --- getOrders, getOrderDetail, updateOrderStatus, cancelOrder, verifyOrder, getOrderStats ---
-    // --- buildOrderDetailResponse, convertToVerificationDto 保持不变 (省略) ---
     @Override
     public IPage<OrderDto> getOrders(UserContext currentUser, OrderQueryDto queryDto) {
         String userRole = currentUser.getRole();
@@ -50,24 +52,25 @@ public class OrderServiceImpl implements IOrderService {
 
         IPage<OrderDto> orderPage;
 
-        switch (userRole) {
-            case "SUPER_ADMIN":
-            case "ADMIN":
+        // 将字符串转换为枚举实例
+        UserRole role = UserRole.getByCode(userRole)
+                .orElseThrow(() -> new BusinessException(ResultStatus.ACCESS_DENIED));
+
+        switch (role) {
+            case SUPER_ADMIN, ADMIN:
                 orderPage = orderMapper.findAllOrders(page);
                 break;
-            case "MERCHANT":
+            case MERCHANT:
                 Integer merchantUserId = currentUser.getId();
-                QueryWrapper<Merchant> merchantWrapper = new QueryWrapper<>();
-                merchantWrapper.eq("user_id", merchantUserId);
+                LambdaQueryWrapper<Merchant> merchantWrapper = new LambdaQueryWrapper<>();
+                merchantWrapper.eq(Merchant::getUserId, merchantUserId);
                 Merchant merchant = merchantMapper.selectOne(merchantWrapper);
                 if (merchant == null) {
-                    // 🟢 使用 ResultStatus 中可能存在的常量，或者通用错误
                     throw new BusinessException(ResultStatus.USER_NOT_FOUND, "Merchant user context not found.");
                 }
                 orderPage = orderMapper.findByMerchantId(page, merchant.getId());
                 break;
-            case "USER":
-            case "CUSTOMER":
+            case USER, CUSTOMER:
                 orderPage = orderMapper.findByUserId(page, currentUser.getId());
                 break;
             default:
@@ -79,13 +82,9 @@ public class OrderServiceImpl implements IOrderService {
             orderPage.getRecords().forEach(orderDto -> {
                 if ("cart".equalsIgnoreCase(orderDto.getOrderType())) {
                     List<OrderItem> items = orderItemMapper.findByOrderId(orderDto.getId());
-                    if (items != null) {
-                        orderDto.setOrderItems(items.stream()
-                                .map(this::convertToOrderItemDto)
-                                .collect(Collectors.toList()));
-                    } else {
-                        orderDto.setOrderItems(new ArrayList<>());
-                    }
+                    orderDto.setOrderItems(items.stream()
+                            .map(this::convertToOrderItemDto)
+                            .toList());
                 }
                 if (orderDto.getBagId() != null) {
                     MagicBag bag = magicBagMapper.selectById(orderDto.getBagId());
@@ -96,8 +95,8 @@ public class OrderServiceImpl implements IOrderService {
                             orderDto.setMerchantName(m.getName());
                         }
                     }
-                } else if ("cart".equalsIgnoreCase(orderDto.getOrderType()) && orderDto.getOrderItems() != null && !orderDto.getOrderItems().isEmpty()){
-                    OrderItemDto firstItemDto = orderDto.getOrderItems().isEmpty() ? null : orderDto.getOrderItems().get(0);
+                } else if ("cart".equalsIgnoreCase(orderDto.getOrderType()) && !CollectionUtils.isEmpty(orderDto.getOrderItems())){
+                    OrderItemDto firstItemDto = orderDto.getOrderItems().getFirst();
                     if (firstItemDto != null && firstItemDto.getMagicBagId() != null) {
                         MagicBag bag = magicBagMapper.selectById(firstItemDto.getMagicBagId());
                         if (bag != null) {
@@ -110,9 +109,7 @@ public class OrderServiceImpl implements IOrderService {
                     }
                 }
                 User user = userMapper.selectById(orderDto.getUserId());
-                if (user != null) {
-                    orderDto.setUserName(user.getNickname() != null ? user.getNickname() : user.getUsername());
-                }
+                orderDto.setUserName(user != null &&user.getNickname() != null ? user.getNickname() : user.getUsername());
             });
         }
 
@@ -130,12 +127,15 @@ public class OrderServiceImpl implements IOrderService {
         Integer currentUserId = currentUser.getId();
 
         boolean allowed = false;
-        switch (userRole) {
-            case "SUPER_ADMIN":
-            case "ADMIN":
+
+        UserRole role = UserRole.getByCode(userRole)
+                .orElseThrow(() -> new BusinessException(ResultStatus.ACCESS_DENIED));
+
+        switch (role) {
+            case SUPER_ADMIN, ADMIN:
                 allowed = true;
                 break;
-            case "MERCHANT":
+            case MERCHANT:
                 Integer merchantIdToCheck = null;
                 if (order.getBagId() != null) {
                     MagicBag bag = magicBagMapper.selectById(order.getBagId());
@@ -143,24 +143,25 @@ public class OrderServiceImpl implements IOrderService {
                 } else if ("cart".equalsIgnoreCase(order.getOrderType())) {
                     List<OrderItem> items = orderItemMapper.findByOrderId(orderId);
                     if (items != null && !items.isEmpty()) {
-                        MagicBag bag = magicBagMapper.selectById(items.get(0).getMagicBagId());
+                        MagicBag bag = magicBagMapper.selectById(items.getFirst().getMagicBagId());
                         if (bag != null) merchantIdToCheck = bag.getMerchantId();
                     }
                 }
-                QueryWrapper<Merchant> merchantWrapper = new QueryWrapper<>();
-                merchantWrapper.eq("user_id", currentUserId);
+                LambdaQueryWrapper<Merchant> merchantWrapper = new LambdaQueryWrapper<>();
+                merchantWrapper.eq(Merchant::getUserId, currentUserId);
                 Merchant currentMerchant = merchantMapper.selectOne(merchantWrapper);
 
                 if (currentMerchant != null && merchantIdToCheck != null && merchantIdToCheck.equals(currentMerchant.getId())) {
                     allowed = true;
                 }
                 break;
-            case "USER":
-            case "CUSTOMER":
+            case USER, CUSTOMER:
                 if (order.getUserId().equals(currentUserId)) {
                     allowed = true;
                 }
                 break;
+            default:
+                throw new BusinessException(ResultStatus.ACCESS_DENIED);
         }
 
         if (!allowed) {
@@ -183,22 +184,23 @@ public class OrderServiceImpl implements IOrderService {
         Integer currentUserId = currentUser.getId();
 
         boolean allowed = false;
-        if ("SUPER_ADMIN".equals(userRole) || "ADMIN".equals(userRole)) {
+        if (UserRole.SUPER_ADMIN.getCode().equals(userRole) || UserRole.ADMIN.getCode().equals(userRole)) {
             allowed = true;
-        } else if ("MERCHANT".equals(userRole)) {
-            Integer merchantIdToCheck = null;
+        } else if (UserRole.MERCHANT.getCode().equals(userRole)) {
+            MagicBag bag = null;
             if (order.getBagId() != null) {
-                MagicBag bag = magicBagMapper.selectById(order.getBagId());
-                if (bag != null) merchantIdToCheck = bag.getMerchantId();
+                bag = magicBagMapper.selectById(order.getBagId());
             } else if ("cart".equalsIgnoreCase(order.getOrderType())) {
                 List<OrderItem> items = orderItemMapper.findByOrderId(orderId);
                 if (items != null && !items.isEmpty()) {
-                    MagicBag bag = magicBagMapper.selectById(items.get(0).getMagicBagId());
-                    if (bag != null) merchantIdToCheck = bag.getMerchantId();
+                    bag = magicBagMapper.selectById(items.getFirst().getMagicBagId());
                 }
             }
-            QueryWrapper<Merchant> merchantWrapper = new QueryWrapper<>();
-            merchantWrapper.eq("user_id", currentUserId);
+
+            Integer merchantIdToCheck = bag != null ? bag.getMerchantId() : null;
+
+            LambdaQueryWrapper<Merchant> merchantWrapper = new LambdaQueryWrapper<>();
+            merchantWrapper.eq(Merchant::getUserId, currentUserId);
             Merchant currentMerchant = merchantMapper.selectOne(merchantWrapper);
             if (currentMerchant != null && merchantIdToCheck != null && merchantIdToCheck.equals(currentMerchant.getId())) {
                 allowed = true;
@@ -212,14 +214,16 @@ public class OrderServiceImpl implements IOrderService {
         order.setStatus(statusDto.getStatus());
 
         Date now = new Date();
-        switch (statusDto.getStatus().toLowerCase()) {
-            case "paid":
+        OrderStatus orderStatus = OrderStatus.getByCode(statusDto.getStatus().toLowerCase())
+                .orElseThrow(() -> new BusinessException(ResultStatus.ACCESS_DENIED));
+        switch (orderStatus) {
+            case PAID:
                 if (order.getPaidAt() == null) order.setPaidAt(now);
                 break;
-            case "completed":
+            case COMPLETED:
                 if (order.getCompletedAt() == null) order.setCompletedAt(now);
                 break;
-            case "cancelled":
+            case CANCELLED:
                 if (order.getCancelledAt() == null) order.setCancelledAt(now);
                 break;
         }
@@ -238,12 +242,7 @@ public class OrderServiceImpl implements IOrderService {
         String userRole = currentUser.getRole();
         Integer currentUserId = currentUser.getId();
 
-        boolean allowed = false;
-        if ("SUPER_ADMIN".equals(userRole) || "ADMIN".equals(userRole)) {
-            allowed = true;
-        } else if (("USER".equals(userRole) || "CUSTOMER".equals(userRole)) && order.getUserId().equals(currentUserId)) {
-            allowed = true;
-        }
+        boolean allowed = "SUPER_ADMIN".equals(userRole) || "ADMIN".equals(userRole) || ("USER".equals(userRole) || "CUSTOMER".equals(userRole)) && order.getUserId().equals(currentUserId);
 
         if (!allowed) {
             throw new BusinessException(ResultStatus.ACCESS_DENIED);
@@ -322,21 +321,22 @@ public class OrderServiceImpl implements IOrderService {
         String userRole = currentUser.getRole();
         Integer currentUserId = currentUser.getId();
 
-        switch (userRole) {
-            case "SUPER_ADMIN":
-            case "ADMIN":
+        UserRole role = UserRole.getByCode(userRole)
+                .orElseThrow(() -> new BusinessException(ResultStatus.ACCESS_DENIED));
+
+        switch (role) {
+            case SUPER_ADMIN, ADMIN:
                 return orderMapper.findAllOrderStats();
-            case "MERCHANT":
-                QueryWrapper<Merchant> merchantWrapper = new QueryWrapper<>();
-                merchantWrapper.eq("user_id", currentUserId);
+            case MERCHANT:
+                LambdaQueryWrapper<Merchant> merchantWrapper = new LambdaQueryWrapper<>();
+                merchantWrapper.eq(Merchant::getUserId, currentUserId);
                 Merchant merchant = merchantMapper.selectOne(merchantWrapper);
                 if (merchant == null) {
                     // 🟢 调用无参构造函数
                     return new OrderStatsDto();
                 }
                 return orderMapper.findOrderStatsByMerchantId(merchant.getId());
-            case "USER":
-            case "CUSTOMER":
+            case USER, CUSTOMER:
                 return orderMapper.findOrderStatsByUserId(currentUserId);
             default:
                 throw new BusinessException(ResultStatus.ACCESS_DENIED);
@@ -345,10 +345,12 @@ public class OrderServiceImpl implements IOrderService {
 
 
     private OrderDetailResponse buildOrderDetailResponse(Order order) {
+        if (order == null) throw new BusinessException(ResultStatus.FAIL, "order is null");
+
         OrderDetailResponse response = new OrderDetailResponse();
         OrderDto orderDto = convertToOrderDto(order);
         response.setOrder(orderDto);
-        User user = userMapper.selectById(order.getUserId());
+        User user = userMapper.selectById(userContextHolder.getCurrentUser().getId());
         if (user != null) {
             OrderDetailResponse.UserInfo userInfo = new OrderDetailResponse.UserInfo();
             userInfo.setId(user.getId());
@@ -371,17 +373,15 @@ public class OrderServiceImpl implements IOrderService {
                     BeanUtils.copyProperties(merchant, merchantInfo);
                 }
             }
-        } else if ("cart".equalsIgnoreCase(order.getOrderType())) {
-            if (orderDto.getOrderItems() != null && !orderDto.getOrderItems().isEmpty()) {
-                OrderItemDto firstItem = orderDto.getOrderItems().isEmpty() ? null : orderDto.getOrderItems().get(0);
-                if (firstItem != null && firstItem.getMagicBagId() != null) {
-                    MagicBag firstBag = magicBagMapper.selectById(firstItem.getMagicBagId());
-                    if (firstBag != null) {
-                        Merchant merchant = merchantMapper.selectById(firstBag.getMerchantId());
-                        if (merchant != null) {
-                            merchantInfo = new OrderDetailResponse.MerchantInfo();
-                            BeanUtils.copyProperties(merchant, merchantInfo);
-                        }
+        } else if ("cart".equalsIgnoreCase(order.getOrderType()) && !CollectionUtils.isEmpty(orderDto.getOrderItems())) {
+            OrderItemDto firstItem = orderDto.getOrderItems().isEmpty() ? null : orderDto.getOrderItems().getFirst();
+            if (firstItem != null && firstItem.getMagicBagId() != null) {
+                MagicBag firstBag = magicBagMapper.selectById(firstItem.getMagicBagId());
+                if (firstBag != null) {
+                    Merchant merchant = merchantMapper.selectById(firstBag.getMerchantId());
+                    if (merchant != null) {
+                        merchantInfo = new OrderDetailResponse.MerchantInfo();
+                        BeanUtils.copyProperties(merchant, merchantInfo);
                     }
                 }
             }
@@ -395,7 +395,7 @@ public class OrderServiceImpl implements IOrderService {
         if (verifications != null) {
             List<OrderVerificationDto> verificationDtos = verifications.stream()
                     .map(this::convertToVerificationDto)
-                    .collect(Collectors.toList());
+                    .toList();
             response.setVerifications(verificationDtos);
         } else {
             response.setVerifications(new ArrayList<>());
@@ -427,7 +427,7 @@ public class OrderServiceImpl implements IOrderService {
         }
 
         // 🟢 获取第一个商品的 MagicBag 以便获取取货时间
-        CartItemDto firstCartItem = cart.getItems().get(0);
+        CartItemDto firstCartItem = cart.getItems().getFirst();
         MagicBag firstBag = magicBagMapper.selectById(firstCartItem.getMagicbagId());
         if (firstBag == null) {
             throw new BusinessException(ResultStatus.DATA_IS_WRONG, "Could not find MagicBag details for the first cart item.");
@@ -462,7 +462,7 @@ public class OrderServiceImpl implements IOrderService {
         order.setBagId(firstCartItem.getMagicbagId());
         // 🟢 设置 quantity 为购物车商品总数
         int totalQuantity = cart.getItems().stream()
-                .mapToInt(item -> item.getQuantity())
+                .mapToInt(CartItemDto::getQuantity)
                 .sum();
         order.setQuantity(totalQuantity);
         order.setTotalPrice(totalPrice);
@@ -514,12 +514,12 @@ public class OrderServiceImpl implements IOrderService {
 
 
     private String generateOrderNo() {
-        return "MB" + System.currentTimeMillis() + String.format("%04d", (int)(Math.random() * 10000));
+        return "MB" + System.currentTimeMillis() + String.format("%04d", (random.nextInt(10000)));
     }
 
 
     private String generatePickupCode() {
-        return String.format("%04d", (int) (Math.random() * 10000));
+        return String.format("%04d", (random.nextInt(10000)));
     }
 
 
@@ -530,14 +530,10 @@ public class OrderServiceImpl implements IOrderService {
 
         if ("cart".equalsIgnoreCase(order.getOrderType())) {
             List<OrderItem> orderItems = orderItemMapper.findByOrderId(order.getId());
-            if (orderItems != null) {
-                dto.setOrderItems(orderItems.stream()
-                        .map(this::convertToOrderItemDto)
-                        .filter(itemDto -> itemDto != null)
-                        .collect(Collectors.toList()));
-            } else {
-                dto.setOrderItems(new ArrayList<>());
-            }
+            dto.setOrderItems(orderItems.stream()
+                    .map(this::convertToOrderItemDto)
+                    .filter(Objects::nonNull)
+                    .toList());
         }
 
         User user = userMapper.selectById(order.getUserId());
@@ -552,8 +548,8 @@ public class OrderServiceImpl implements IOrderService {
                 Merchant merchant = merchantMapper.selectById(bag.getMerchantId());
                 if (merchant != null) dto.setMerchantName(merchant.getName());
             }
-        } else if ("cart".equalsIgnoreCase(order.getOrderType()) && dto.getOrderItems() != null && !dto.getOrderItems().isEmpty()) {
-            OrderItemDto firstItem = dto.getOrderItems().isEmpty() ? null : dto.getOrderItems().get(0);
+        } else if ("cart".equalsIgnoreCase(order.getOrderType()) && !CollectionUtils.isEmpty(dto.getOrderItems())) {
+            OrderItemDto firstItem = dto.getOrderItems().isEmpty() ? null : dto.getOrderItems().getFirst();
             if (firstItem != null && firstItem.getMagicBagId() != null) {
                 MagicBag bag = magicBagMapper.selectById(firstItem.getMagicBagId());
                 if (bag != null) {

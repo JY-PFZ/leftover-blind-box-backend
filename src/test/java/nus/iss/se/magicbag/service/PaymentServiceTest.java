@@ -1,4 +1,4 @@
-package nus.iss.se.leftoverblindboxbackend;
+package nus.iss.se.magicbag.service;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -14,7 +14,6 @@ import com.stripe.exception.StripeException;
 import nus.iss.se.magicbag.dto.PaymentResponseDto;
 import nus.iss.se.magicbag.entity.*;
 import nus.iss.se.magicbag.mapper.*;
-import nus.iss.se.magicbag.service.PaymentService;
 
 import java.math.BigDecimal;
 

@@ -2,6 +2,9 @@ package nus.iss.se.magicbag.util;
 
 public class HaversineDistance {
 
+    private HaversineDistance() {
+    }
+
     private static final double EARTH_RADIUS_KM = 6371.0; // 地球半径，单位：公里
 
     /**
@@ -35,7 +38,7 @@ public class HaversineDistance {
     }
 
     // 示例：测试北京到上海的距离
-    public static void main(String[] args) {
+/*    public static void main(String[] args) {
         // 北京 (39.9042° N, 116.4074° E)
         double beijingLat = 39.9042;
         double beijingLon = 116.4074;
@@ -47,5 +50,5 @@ public class HaversineDistance {
         double distance = calculateDistance(beijingLat, beijingLon, shanghaiLat, shanghaiLon);
 
         System.out.printf("北京到上海的距离约为: %.2f 公里%n", distance);
-    }
+    }*/
 }

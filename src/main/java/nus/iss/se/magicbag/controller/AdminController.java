@@ -17,25 +17,25 @@ public class AdminController {
     private final IAdminTaskService adminTaskService;
 
     @GetMapping("/task")
-    public Result<?> getTasks(TaskQo qo){
+    public Result<IPage<AdminTask>> getTasks(TaskQo qo){
         IPage<AdminTask> tasks = adminTaskService.getTasks(qo);
         return Result.success(tasks);
     }
 
     @PostMapping("/task/{taskId}/claim")
-    public Result<?> claimTask(@PathVariable Long taskId) {
+    public Result<String> claimTask(@PathVariable Long taskId) {
         adminTaskService.claimTask(taskId);
         return Result.success();
     }
 
     @PostMapping("/task/{taskId}/approve")
-    public Result<?> approveTask(@PathVariable Long taskId) {
+    public Result<String> approveTask(@PathVariable Long taskId) {
         adminTaskService.approveTask(taskId);
         return Result.success();
     }
 
     @PostMapping("/task/{taskId}/reject")
-    public Result<?> rejectTask(@PathVariable Long taskId, @RequestParam String comment) {
+    public Result<String> rejectTask(@PathVariable Long taskId, @RequestParam String comment) {
         adminTaskService.rejectTask(taskId,comment);
         return Result.success();
     }

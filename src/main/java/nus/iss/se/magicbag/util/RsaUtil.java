@@ -58,13 +58,13 @@ public class RsaUtil {
         return sb.toString();
     }
 
-    public RsaUtil(String privateKeyPath, String publicKeyPath) throws Exception {
+    public RsaUtil(String privateKeyPath, String publicKeyPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         this.privateKey = loadPrivateKey(privateKeyPath);
         this.publicKey = loadPublicKey(publicKeyPath);
     }
 
     public String encrypt(String plaintext) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
-        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         byte[] encrypted = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
         return Base64.getEncoder().encodeToString(encrypted);
@@ -72,7 +72,7 @@ public class RsaUtil {
 
     public String decrypt(String encryptedBase64) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         byte[] encrypted = Base64.getDecoder().decode(encryptedBase64);
-        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
         byte[] decrypted = cipher.doFinal(encrypted);
         return new String(decrypted, StandardCharsets.UTF_8);

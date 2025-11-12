@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nus.iss.se.magicbag.common.constant.ResultStatus;
+import nus.iss.se.magicbag.common.exception.BusinessException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -43,7 +45,7 @@ public class RedisUtil {
      * 判断 key 是否存在
      */
     public boolean hasKey(String key) {
-        return redisTemplate.hasKey(key);
+        return redisTemplate != null && redisTemplate.hasKey(key);
     }
 
     /**
@@ -87,7 +89,7 @@ public class RedisUtil {
             String json = objectMapper.writeValueAsString(value);
             redisTemplate.opsForValue().set(key, json, timeout, unit);
         } catch (Exception e) {
-            throw new RuntimeException("JSON 序列化失败", e);
+            throw new BusinessException(ResultStatus.FAIL, "JSON 序列化失败");
         }
     }
 
@@ -98,7 +100,7 @@ public class RedisUtil {
             return objectMapper.readValue(json, clazz);
         } catch (Exception e) {
             log.info(ExceptionUtils.getStackTrace(e));
-            throw new RuntimeException("JSON 反序列化失败", e);
+            throw new BusinessException(ResultStatus.FAIL, "JSON 反序列化失败");
         }
     }
 }

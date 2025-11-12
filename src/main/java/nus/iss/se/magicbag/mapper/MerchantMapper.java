@@ -25,6 +25,9 @@ public interface MerchantMapper extends BaseMapper<Merchant> {
     @Select("SELECT * FROM merchants WHERE phone = #{phone}")
     Merchant findByPhone(@Param("phone") String phone);
 
+    @Select("SELECT * FROM merchants WHERE user_id = #{userId}")
+    Merchant findByUserId(@Param("userId") Integer userId);
+
     @Select("SELECT id,name,score FROM merchants WHERE status = 'approved' and score >= #{miScore} ORDER BY score DESC")
     IPage<MerchantDto> sortedByScore(IPage<MerchantDto> page, @Param("minScore") Integer minScore);
 

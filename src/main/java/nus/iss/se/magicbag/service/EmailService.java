@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class EmailService {
     @Getter
     @Value("${common.url}")
-    private String URL;
+    private String url;
 
     private final RedisUtil redisUtil;
     private final JavaMailSender javaMailSender;
@@ -173,6 +173,6 @@ public class EmailService {
     }
 
     private String generateActivateLink(String token){
-        return URL + "/" + ACTIVATE_API + "?token=" + token;
+        return url + "/" + ACTIVATE_API + "?token=" + token;
     }
 }

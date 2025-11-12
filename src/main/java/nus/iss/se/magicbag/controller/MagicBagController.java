@@ -78,12 +78,8 @@ public class MagicBagController {
     @PostMapping
     @Operation(summary = "创建盲盒商品", description = "创建新的盲盒商品")
     public Result<MagicBagDto> createMagicBag(@RequestBody @Valid MagicBagCreateDto createDto) {
-        try {
-            MagicBagDto magicBag = magicBagService.createMagicBag(createDto);
-            return Result.success(magicBag);
-        } catch (Exception e) {
-            return Result.error("创建盲盒失败: " + e.getMessage());
-        }
+        MagicBagDto magicBag = magicBagService.createMagicBag(createDto);
+        return Result.success(magicBag);
     }
     
     /**
@@ -93,14 +89,9 @@ public class MagicBagController {
     @Operation(summary = "更新盲盒商品", description = "更新指定ID的盲盒商品信息")
     public Result<MagicBagDto> updateMagicBag(@PathVariable Integer id, 
                                               @RequestBody @Valid MagicBagUpdateDto updateDto) {
-        try {
-            MagicBagDto magicBag = magicBagService.updateMagicBag(id, updateDto);
-            return Result.success(magicBag);
-        } catch (RuntimeException e) {
-            return Result.error(e.getMessage());
-        } catch (Exception e) {
-            return Result.error("更新盲盒失败: " + e.getMessage());
-        }
+
+        MagicBagDto magicBag = magicBagService.updateMagicBag(id, updateDto);
+        return Result.success(magicBag);
     }
     
     /**

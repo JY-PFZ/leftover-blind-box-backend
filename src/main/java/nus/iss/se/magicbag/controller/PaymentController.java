@@ -9,10 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.dto.PaymentResponseDto;
 import nus.iss.se.magicbag.service.PaymentService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -84,7 +82,7 @@ public class PaymentController {
     @Operation(summary = "Payment success page")
     public ResponseEntity<PaymentResponseDto> paymentSuccess(
             @RequestParam Integer orderId,
-            @RequestParam(required = false) String session_id) {
+            @RequestParam(required = false) String sessionId) {
         
         log.info("Payment success callback for order {}", orderId);
         
@@ -93,8 +91,8 @@ public class PaymentController {
         response.setMessage("Payment successful! Please verify your payment.");
         
         // 可以返回 sessionId 给前端,让前端调用 /verify
-        if (session_id != null) {
-            response.setCheckoutUrl(session_id); // 复用这个字段传 sessionId
+        if (sessionId != null) {
+            response.setCheckoutUrl(sessionId); // 复用这个字段传 sessionId
         }
         
         return ResponseEntity.ok(response);

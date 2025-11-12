@@ -41,7 +41,9 @@ public enum UserRole {
     /**
      * 客服：拥有客户服务相关权限
      */
-    CUSTOMER_SERVICE("CUSTOMER_SERVICE", "客服");
+    CUSTOMER_SERVICE("CUSTOMER_SERVICE", "客服"),
+
+    CUSTOMER("CUSTOMER", "customer");
 
     /**
      * 角色标识（数据库存储用）

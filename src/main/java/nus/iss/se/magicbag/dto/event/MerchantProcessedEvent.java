@@ -1,6 +1,5 @@
 package nus.iss.se.magicbag.dto.event;
 
-import lombok.Data;
 
 import java.util.Date;
 

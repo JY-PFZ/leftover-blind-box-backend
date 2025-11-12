@@ -6,7 +6,6 @@ import nus.iss.se.magicbag.dto.MagicBagDto;
 import nus.iss.se.magicbag.dto.MagicBagListResponse;
 import nus.iss.se.magicbag.dto.MagicBagUpdateDto;
 import nus.iss.se.magicbag.entity.MagicBag;
-import nus.iss.se.magicbag.entity.User;
 
 import java.util.List;
 

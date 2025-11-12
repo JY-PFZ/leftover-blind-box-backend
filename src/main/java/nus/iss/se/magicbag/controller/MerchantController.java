@@ -128,7 +128,7 @@ public class MerchantController {
             @RequestParam(defaultValue = "0", name = "minScore") Integer minScore){ // minScore 通常是浮点数，如 0.0 或 3.5
         // 确保页码和大小是有效的
         current = Math.max(1, current);
-        size = Math.max(1, Math.min(100, size)); // 限制每页大小
+        size = Math.clamp(size, 1, 100);
 
         IPage<MerchantDto> listByScore = merchantService.sortedMerchantsByScore(current, size, minScore);
         return Result.success(listByScore);

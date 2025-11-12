@@ -5,7 +5,6 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.iss.se.magicbag.dto.OrderDto;
 import nus.iss.se.magicbag.dto.PaymentResponseDto;
@@ -29,7 +28,6 @@ import java.util.Date;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class PaymentService {
 
@@ -38,27 +36,30 @@ public class PaymentService {
     private final UserMapper userMapper;
     private final MerchantMapper merchantMapper;
     private final OrderItemMapper orderItemMapper;
+    private final String payUrl;
 
-    @Value("${stripe.api.key}")
-    private String stripeApiKey;
+    @Autowired
+    public PaymentService(OrderMapper orderMapper,
+                          MagicBagMapper magicBagMapper,
+                          UserMapper userMapper,
+                          MerchantMapper merchantMapper,
+                          OrderItemMapper orderItemMapper,
+                          @Value("${stripe.api.key}") String stripeApiKey,
+                          @Value("${app.pay-url:http://localhost:5173}")String payUrl) {
+        this.orderMapper = orderMapper;
+        this.magicBagMapper = magicBagMapper;
+        this.userMapper = userMapper;
+        this.merchantMapper = merchantMapper;
+        this.orderItemMapper = orderItemMapper;
+        this.payUrl = payUrl;
 
-    @Value("${app.pay-url:http://localhost:5173}")
-    private String payUrl;
-
-    private boolean stripeInitialized = false;
-
-    private void initStripe() {
-        if (!stripeInitialized) {
-            Stripe.apiKey = stripeApiKey;
-            stripeInitialized = true;
-        }
+        Stripe.apiKey = stripeApiKey;
     }
 
     /**
      * 创建 Stripe Checkout Session
      */
     public PaymentResponseDto createCheckoutSession(Integer orderId) throws StripeException {
-        initStripe();
         PaymentResponseDto response = new PaymentResponseDto();
 
         Order order = orderMapper.selectById(orderId);
@@ -68,7 +69,6 @@ public class PaymentService {
             return response;
         }
 
-        // ⚠️ 检查订单状态
         if ("paid".equals(order.getStatus())) {
             response.setSuccess(false);
             response.setMessage("Order already paid");
@@ -155,7 +155,6 @@ public class PaymentService {
      */
     @Transactional
     public PaymentResponseDto verifyAndUpdatePayment(Integer orderId, String sessionId) {
-        initStripe();
         PaymentResponseDto response = new PaymentResponseDto();
 
         try {
