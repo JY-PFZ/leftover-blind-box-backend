@@ -33,7 +33,10 @@ jobs:
             -Dproject.name="magic-bag-mono" \
             -DoutputDirectory="target/dependency-check-report" \
             -DfailOnCVSS=7 \
-            -DcveValidForHours=24
+            -DcveValidForHours=24 \
+            -Dnvd.api.key="${{ secrets.NVD_API_KEY }}" \
+            -DupdateOnly=false \
+            -DautoUpdate=true
 
       - name: Run tests & generate JaCoCo report
         run: mvn -B verify
