@@ -38,8 +38,9 @@ jobs:
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.projectKey=leftover-blind-box-backend
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+            -Dsonar.projectKey=leftover-blind-box-backend \
+            -Dsonar.branch.name=main \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             || echo "⚠️ Sonar scan completed but failed to validate default branch. Analysis still uploaded."
 
       - name: 📤 Upload Unit Test Reports
