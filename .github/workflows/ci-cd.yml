@@ -1,10 +1,8 @@
-name: Spring Boot CI/CD with SAST + Docker Hub (Port 10015)
-
+name: Spring Boot CI/CD with SAST + SCA + DAST + Docker Hub (Port 10015)
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
-
 env:
   APP_PORT: 10015
   DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/magic-bag-mono
@@ -12,7 +10,7 @@ env:
 
 jobs:
   ci:
-    name: Build, Test & SAST
+    name: Build, Test, SCA & SAST
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout code
@@ -27,10 +25,21 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      # 🔍 新增：SCA 扫描（OWASP Dependency-Check）
+      - name: 🔍 SCA - OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "magic-bag-mono"
+          path: "."
+          format: "HTML,JSON"
+          outDir: "target/dependency-check-report"
+          # 可选：若希望高危漏洞中断构建，取消下一行注释
+          # args: "--failOnCVSS 7"
+
       - name: Run tests & generate JaCoCo report
         run: mvn -B verify
 
-      - name: 🔍 SAST-SonarQube Analysis
+      - name: 🔍 SAST - SonarQube Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
@@ -57,6 +66,14 @@ jobs:
         with:
           name: jacoco-report-${{ github.sha }}
           path: target/site/jacoco/
+          retention-days: 30
+
+      - name: 📤 Upload SCA (Dependency-Check) Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sca-report-${{ github.sha }}
+          path: target/dependency-check-report/
           retention-days: 30
 
       - name: 🚪 Login to Docker Hub
@@ -103,34 +120,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: ⏳ Wait for application to start
-        run: sleep 45  # 恢复启动等待（根据服务启动时间调整，建议60秒以上）
+        run: sleep 45
         if: ${{ !cancelled() }}
 
       - name: 🔐 Validate and set target URL
         run: |
-          # 清理EC2_HOST中的空白字符，避免URL格式错误
           EC2_HOST_CLEAN=$(echo "${{ secrets.EC2_HOST }}" | tr -d '[:space:]')
-
-          # 检查EC2_HOST是否为空
           if [ -z "$EC2_HOST_CLEAN" ]; then
             echo "❌ Error: EC2_HOST secret is empty or invalid"
             exit 1
           fi
-
-          # 构建并验证目标URL格式
           TARGET_URL="http://${EC2_HOST_CLEAN}:${{ env.APP_PORT }}"
           if [[ ! "$TARGET_URL" =~ ^http[s]?:// ]]; then
             echo "❌ Error: Invalid URL format - $TARGET_URL (must start with http:// or https://)"
             exit 1
           fi
-
           echo "TARGET_URL=$TARGET_URL" >> $GITHUB_ENV
           echo "✅ Target URL set to: $TARGET_URL"
 
       - name: 🔍 Check target service reachability
         run: |
           echo "Testing connectivity to $TARGET_URL..."
-          # 检测目标端口是否可达（超时10秒）
           if ! curl -Is --connect-timeout 10 "$TARGET_URL" >/dev/null 2>&1; then
             echo "❌ Error: Target service is unreachable. Check:"
             echo "  - EC2_HOST: ${{ secrets.EC2_HOST }}"
@@ -141,35 +151,28 @@ jobs:
           echo "✅ Target service is reachable"
 
       - name: 🕸️ Run ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.13.0 # 升级到最新稳定版
+        uses: zaproxy/action-baseline@v0.13.0
         with:
           target: ${{ env.TARGET_URL }}
-          # 修正参数：-T 表示总超时（分钟），-m 表示爬虫时间（分钟）
-          cmd_options: "-T 10 -m 5 -J zap_report.json -r report.html -d"  # -d启用调试日志
-        continue-on-error: false  # 扫描失败时直接终止（如需忽略失败可设为true）
+          cmd_options: "-T 10 -m 5 -J zap_report.json -r report.html -d"
 
       - name: 🔍 Analyze vulnerabilities
-        if: always()  # 即使扫描失败也执行（用于捕获报告生成失败的情况）
+        if: always()
         run: |
-          # 检查报告文件是否生成
           if [ ! -f "zap_report.json" ] || [ ! -f "report.html" ]; then
             echo "❌ Error: ZAP report files not found. Scan may have failed."
             exit 1
           fi
-
-          # 使用 jq 直接计算高危漏洞数量（riskcode >= 2）
           count=$(jq '
           [.site[]?.alerts[]? | select(.riskcode | tonumber >= 2)] | length
             ' zap_report.json)
-
           if [ "$count" -gt 0 ]; then
             echo -e "\n🚨 Found $count high/critical vulnerabilities:"
-            # 使用 jq 直接输出高危漏洞详情
             jq -r '
               .site[]?.alerts[]?
-                                   | select(.riskcode | tonumber >= 2)
-                                     | "• \(.name) (\(.riskdesc)): \(.url)"
-                                     ' zap_report.json
+              | select(.riskcode | tonumber >= 2)
+              | "• \(.name) (\(.riskdesc)): \(.url)"
+              ' zap_report.json
             exit 1
           else
             echo -e "\n✅ No high/critical vulnerabilities detected"
