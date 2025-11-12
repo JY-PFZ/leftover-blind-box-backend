@@ -31,11 +31,11 @@ jobs:
           mvn org.owasp:dependency-check-maven:check \
             -DskipTests=true \
             -Dproject.name="magic-bag-mono" \
-            -DoutputDirectory="target/dependency-check-report" \
+            -Ddependency-check.outputDirectory="target/dependency-check-report" \
+            -Ddependency-check.format="HTML,JSON" \
             -DfailOnCVSS=7 \
             -DcveValidForHours=24 \
             -Dnvd.api.key="${{ secrets.NVD_API_KEY }}" \
-            -DupdateOnly=false \
             -DautoUpdate=true
 
       - name: Run tests & generate JaCoCo report
