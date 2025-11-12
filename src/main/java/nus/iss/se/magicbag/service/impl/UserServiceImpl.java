@@ -46,7 +46,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     @Transactional
     public void register(RegisterReq req) {
-        User existUser = this.baseMapper.selectByUsername(req.getUsername());
+        User existUser = baseMapper.selectByUsername(req.getUsername());
         if (existUser != null){
             throw new BusinessException(ResultStatus.USER_HAS_EXISTED, req.getUsername());
         }
