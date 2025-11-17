@@ -16,7 +16,7 @@ public interface IUserService extends IService<User> {
     void updateUserInfo(UserDto user);
 
     /**
-     * 更新用户个人信息（带权限验证）
+     * 更新用户个人信息 （带权限验证） 
      * @param dto 用户更新信息
      * @param currentUser 当前登录用户上下文
      */
