@@ -30,7 +30,7 @@ public class EmailService {
     private static final Random RANDOM = new Random();
     private static final String ACTIVATE_API = "api/auth/activate";
 
-    // 发送验证码邮件（HTML 格式）
+    // 发送验证码邮件（HTML格式）
     public void sendVerificationCode1(String to, String code) throws MessagingException {
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
